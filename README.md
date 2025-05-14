@@ -68,14 +68,12 @@ Este projeto tem como objetivo facilitar o processo de adoção de animais, ofer
 ### Clonando o Repositório
 
 ```bash
-git clone https://github.com/seu-usuario/webpet.git
-cd webpet
+git clone https://github.com/WebPetFabrica/web-pet-back.git
 ```
 ### Executando o projeto:
-
-#### Basta executar o seguinte comando no terminal:
+#### Abra o arquivo com o IntelliJ ou eclipse(Sugiro IntelliJ) e em seguida basta executar o seguinte comando no terminal:
 ```bash
 ./mvnw spring-boot:run
 ```
 
-#### Ou via IDE como IntelliJ ou Eclipse, basta rodar a classe WebPetApplication.# web-pet-back
+#### Ou via IDE como IntelliJ ou Eclipse, basta rodar a classe WebPetApplication.
