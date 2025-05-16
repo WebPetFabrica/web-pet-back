@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      # Configuração para conexão com o banco dentro do ambiente Docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/webpet_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+
+  db:
+    image: postgres:15
+    ports:
+      # Porta externa 5433 para evitar conflitos com PostgreSQL local
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: webpet_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
