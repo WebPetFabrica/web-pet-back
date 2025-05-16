@@ -26,15 +26,26 @@ public class SecurityFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         var token = this.recoverToken(request);
-        var login = tokenService.validateToken(token);
-
-        if (login != null) {
-            User user = userRepository.findByEmail(login).orElseThrow(() -> new RuntimeException("User Not Found"));
-            var authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
-            var authentication = new UsernamePasswordAuthenticationToken(user, null, authorities);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        
+        // Verifica token se existir
+        if (token != null) {
+            var login = tokenService.validateToken(token);
+            if (login != null) {
+                User user = userRepository.findByEmail(login).orElse(null);
+                if (user != null) {
+                    var authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+                    var authentication = new UsernamePasswordAuthenticationToken(user, null, authorities);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
+            }
         }
+        
+        // Continua o filtro, mas as rotas ainda serão protegidas pelo SecurityConfig
+        // A autenticação só ocorrerá se o token estiver presente e for válido
         filterChain.doFilter(request, response);
+        
+        // TODO: Em ambiente de produção, implementar validação mais rigorosa e retornar 
+        // 401 Unauthorized se o token for inválido em rotas protegidas
     }
 
     private String recoverToken(HttpServletRequest request) {
