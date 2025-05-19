@@ -11,13 +11,44 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 
 @Component
+@RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
-    @Autowired
-    private UserRepository repository;
+    private final UserRepository userRepository;
+    private final ONGRepository ongRepository;
+    private final ProtetorRepository protetorRepository;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = this.repository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), new ArrayList<>());
+        // Primeiro tenta encontrar como usuário comum
+        Optional<User> user = userRepository.findByEmail(username);
+        if (user.isPresent()) {
+            return new org.springframework.security.core.userdetails.User(
+                user.get().getEmail(), 
+                user.get().getPassword(), 
+                new ArrayList<>()
+            );
+        }
+
+        // Depois tenta encontrar como ONG
+        Optional<ONG> ong = ongRepository.findByEmail(username);
+        if (ong.isPresent()) {
+            return new org.springframework.security.core.userdetails.User(
+                ong.get().getEmail(), 
+                ong.get().getPassword(), 
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_ONG"))
+            );
+        }
+
+        // Por último tenta encontrar como Protetor
+        Optional<Protetor> protetor = protetorRepository.findByEmail(username);
+        if (protetor.isPresent()) {
+            return new org.springframework.security.core.userdetails.User(
+                protetor.get().getEmail(), 
+                protetor.get().getPassword(), 
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_PROTETOR"))
+            );
+        }
+
+        throw new UsernameNotFoundException("User not found: " + username);
     }
 }

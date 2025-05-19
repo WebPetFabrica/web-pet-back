@@ -62,4 +62,24 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/register/ong")
+    public ResponseEntity<ResponseDTO> registerONG(@RequestBody ONGRegisterDTO body) {
+        try {
+            ResponseDTO response = userRegistrationService.registerONG(body);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/register/protetor")
+    public ResponseEntity<ResponseDTO> registerProtetor(@RequestBody ProtetorRegisterDTO body) {
+        try {
+            ResponseDTO response = userRegistrationService.registerProtetor(body);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
 }
