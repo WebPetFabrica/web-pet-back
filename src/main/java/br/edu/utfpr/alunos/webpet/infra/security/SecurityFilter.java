@@ -16,36 +16,65 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Collections;
 
+// src/main/java/br/edu/utfpr/alunos/webpet/infra/security/SecurityFilter.java
 @Component
+@RequiredArgsConstructor
 public class SecurityFilter extends OncePerRequestFilter {
-    @Autowired
-    TokenService tokenService;
-    @Autowired
-    UserRepository userRepository;
+    private final TokenService tokenService;
+    private final UserRepository userRepository;
+    private final ONGRepository ongRepository;
+    private final ProtetorRepository protetorRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         var token = this.recoverToken(request);
         
-        // Verifica token se existir
         if (token != null) {
             var login = tokenService.validateToken(token);
             if (login != null) {
-                User user = userRepository.findByEmail(login).orElse(null);
-                if (user != null) {
-                    var authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
-                    var authentication = new UsernamePasswordAuthenticationToken(user, null, authorities);
+                UserDetails userDetails = findUserByEmail(login);
+                if (userDetails != null) {
+                    var authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             }
         }
         
-        // Continua o filtro, mas as rotas ainda serão protegidas pelo SecurityConfig
-        // A autenticação só ocorrerá se o token estiver presente e for válido
         filterChain.doFilter(request, response);
-        
-        // TODO: Em ambiente de produção, implementar validação mais rigorosa e retornar 
-        // 401 Unauthorized se o token for inválido em rotas protegidas
+    }
+
+    private UserDetails findUserByEmail(String email) {
+        // Buscar como usuário comum
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isPresent()) {
+            return new org.springframework.security.core.userdetails.User(
+                user.get().getEmail(), 
+                user.get().getPassword(), 
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+            );
+        }
+
+        // Buscar como ONG
+        Optional<ONG> ong = ongRepository.findByEmail(email);
+        if (ong.isPresent()) {
+            return new org.springframework.security.core.userdetails.User(
+                ong.get().getEmail(), 
+                ong.get().getPassword(), 
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_ONG"))
+            );
+        }
+
+        // Buscar como Protetor
+        Optional<Protetor> protetor = protetorRepository.findByEmail(email);
+        if (protetor.isPresent()) {
+            return new org.springframework.security.core.userdetails.User(
+                protetor.get().getEmail(), 
+                protetor.get().getPassword(), 
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_PROTETOR"))
+            );
+        }
+
+        return null;
     }
 
     private String recoverToken(HttpServletRequest request) {
