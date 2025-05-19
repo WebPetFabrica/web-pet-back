@@ -19,7 +19,7 @@ cd web-pet-back
 ### 2. Execute os Containers
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 Este comando irá:
@@ -32,7 +32,7 @@ Este comando irá:
 ### 3. Verifique o Status
 
 ```bash
-docker-compose ps
+docker compose ps
 ```
 
 Você deverá ver dois containers em execução:
@@ -65,7 +65,7 @@ A API estará disponível em: http://localhost:8080
 Para interromper a execução:
 
 ```bash
-docker-compose down
+docker compose down
 ```
 
 ### 7. Logs e Diagnóstico
@@ -73,13 +73,13 @@ docker-compose down
 Para ver os logs da aplicação:
 
 ```bash
-docker-compose logs app
+docker compose logs app
 ```
 
 Para ver os logs do banco de dados:
 
 ```bash
-docker-compose logs db
+docker compose logs db
 ```
 
 ## 💾 Persistência de Dados
@@ -90,8 +90,8 @@ Os dados do banco PostgreSQL são persistidos através de um volume Docker chama
 
 Se você precisar realizar ajustes nas configurações:
 
-- **Portas**: Altere no arquivo `docker-compose.yml`
-- **Variáveis de ambiente**: Modifique a seção `environment` no `docker-compose.yml`
+- **Portas**: Altere no arquivo `docker compose.yml`
+- **Variáveis de ambiente**: Modifique a seção `environment` no `docker compose.yml`
 - **Configurações JPA**: Ajuste o arquivo `application.properties`
 
 ## 🧪 Ambiente de Desenvolvimento
@@ -101,8 +101,8 @@ Para desenvolvimento, você pode:
 1. Fazer alterações no código
 2. Reconstruir e reiniciar os containers:
    ```bash
-   docker-compose down
-   docker-compose up --build -d
+   docker compose down
+   docker compose up --build -d
    ```
 
 ---
