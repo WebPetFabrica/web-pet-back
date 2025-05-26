@@ -10,25 +10,29 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "users")
+@Table(name = "protetores")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User extends BaseUser {
+public class Protetor extends BaseUser {
     @Column(nullable = false)
-    private String name;
+    private String nomeCompleto;
     
-    private String surname;
+    @Column(unique = true, nullable = false)
+    private String cpf;
+    
+    private String endereco;
+    private Integer capacidadeAcolhimento;
     
     @Override
     public String getDisplayName() {
-        return surname != null ? name + " " + surname : name;
+        return nomeCompleto;
     }
     
     @Override
     public String getIdentifier() {
-        return getEmail();
+        return cpf;
     }
 }

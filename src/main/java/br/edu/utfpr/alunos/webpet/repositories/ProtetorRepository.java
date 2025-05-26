@@ -1,11 +1,13 @@
 package br.edu.utfpr.alunos.webpet.repositories;
 
-import br.edu.utfpr.alunos.webpet.domain.protetor.Protetor;
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.util.Optional;
 
-public interface ProtetorRepository extends JpaRepository<Protetor, String> {
-    Optional<Protetor> findByEmail(String email);
+import org.springframework.stereotype.Repository;
+
+import br.edu.utfpr.alunos.webpet.domain.user.Protetor;
+
+@Repository
+public interface ProtetorRepository extends BaseUserRepository<Protetor> {
     Optional<Protetor> findByCpf(String cpf);
+    boolean existsByCpf(String cpf);
 }
