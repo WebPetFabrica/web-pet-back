@@ -1,20 +1,26 @@
 package br.edu.utfpr.alunos.webpet.infra.security;
 
 import br.edu.utfpr.alunos.webpet.domain.user.User;
+import br.edu.utfpr.alunos.webpet.entities.ONG;
+import br.edu.utfpr.alunos.webpet.entities.Protetor;
 import br.edu.utfpr.alunos.webpet.repositories.UserRepository;
+import br.edu.utfpr.alunos.webpet.repositories.ONGRepository;
+import br.edu.utfpr.alunos.webpet.repositories.ProtetorRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Optional;
 
 // src/main/java/br/edu/utfpr/alunos/webpet/infra/security/SecurityFilter.java
 @Component
