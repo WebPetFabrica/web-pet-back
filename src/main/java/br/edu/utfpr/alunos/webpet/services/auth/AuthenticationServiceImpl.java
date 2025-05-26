@@ -1,10 +1,5 @@
 package br.edu.utfpr.alunos.webpet.services.auth;
 
-import br.edu.utfpr.alunos.webpet.domain.user.*;
-import br.edu.utfpr.alunos.webpet.dto.auth.*;
-import br.edu.utfpr.alunos.webpet.infra.exception.BusinessException;
-import br.edu.utfpr.alunos.webpet.repositories.*;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -12,6 +7,23 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import br.edu.utfpr.alunos.webpet.domain.user.BaseUser;
+import br.edu.utfpr.alunos.webpet.domain.user.ONG;
+import br.edu.utfpr.alunos.webpet.domain.user.Protetor;
+import br.edu.utfpr.alunos.webpet.domain.user.User;
+import br.edu.utfpr.alunos.webpet.domain.user.UserType;
+import br.edu.utfpr.alunos.webpet.dto.auth.AuthResponseDTO;
+import br.edu.utfpr.alunos.webpet.dto.auth.LoginRequestDTO;
+import br.edu.utfpr.alunos.webpet.dto.auth.ONGRegisterDTO;
+import br.edu.utfpr.alunos.webpet.dto.auth.ProtetorRegisterDTO;
+import br.edu.utfpr.alunos.webpet.dto.auth.RegisterRequestDTO;
+import br.edu.utfpr.alunos.webpet.infra.exception.BusinessException;
+import br.edu.utfpr.alunos.webpet.infra.security.TokenService;
+import br.edu.utfpr.alunos.webpet.repositories.ONGRepository;
+import br.edu.utfpr.alunos.webpet.repositories.ProtetorRepository;
+import br.edu.utfpr.alunos.webpet.repositories.UserRepository;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -33,7 +45,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             UserDetails userDetails = (UserDetails) auth.getPrincipal();
             String token = tokenService.generateToken(userDetails);
             
-            // Buscar nome do usuário em qualquer repositório
             String displayName = findDisplayNameByEmail(loginDTO.email());
             
             return new AuthResponseDTO(displayName, token, "Bearer");
@@ -55,7 +66,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         
         user.setEmail(registerDTO.email());
         user.setPassword(passwordEncoder.encode(registerDTO.password()));
-        user.setCelular(""); // Temporário, adicionar ao DTO se necessário
+        user.setCelular("");
         user.setUserType(UserType.USER);
         
         user = userRepository.save(user);
