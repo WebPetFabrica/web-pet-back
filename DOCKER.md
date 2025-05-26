@@ -26,7 +26,7 @@ Este comando irá:
 - Construir o container da aplicação Spring Boot
 - Iniciar um container PostgreSQL 
 - Configurar a rede entre os containers
-- Expor a aplicação na porta 8080
+- Expor a aplicação na porta 8081
 - Expor o banco na porta 5433 (para evitar conflitos com instalações locais)
 
 ### 3. Verifique o Status
@@ -36,42 +36,42 @@ docker compose ps
 ```
 
 Você deverá ver dois containers em execução:
-- `web-pet-back_app_1`
-- `web-pet-back_db_1`
+- `web-pet-back-app-1`
+- `web-pet-back-db-1`
 
 ### 4. Acesse a Aplicação
 
-A API estará disponível em: http://localhost:8080
+A API estará disponível em: http://localhost:8081
 
 ### 5. Endpoints Disponíveis
 
 - **POST /auth/register** - Registrar novo usuário
   ```bash
-  curl -X POST http://localhost:8080/auth/register -H "Content-Type: application/json" -d '{"name":"Teste", "email":"teste@exemplo.com", "password":"senha123"}'
+  curl -X POST http://localhost:8081/auth/register -H "Content-Type: application/json" -d '{"name":"Teste", "email":"teste@exemplo.com", "password":"senha123"}'
   ```
 
 - **POST /auth/login** - Autenticar usuário
   ```bash
-  curl -X POST http://localhost:8080/auth/login -H "Content-Type: application/json" -d '{"email":"teste@exemplo.com", "password":"senha123"}'
+  curl -X POST http://localhost:8081/auth/login -H "Content-Type: application/json" -d '{"email":"teste@exemplo.com", "password":"senha123"}'
   ```
 
 - **POST /auth/register/ong** - Registrar ONG
   ```bash
-  curl -X POST http://localhost:8080/auth/register/ong \
+  curl -X POST http://localhost:8081/auth/register/ong \
   -H "Content-Type: application/json" \
   -d '{"cnpj":"12345678000190","nomeOng":"ONG Teste","email":"ong@teste.com","celular":"41999999999","password":"senha123"}'
   ```
 
 - **POST /auth/register/protetor** - Registrar Protetor
   ```bash
-  curl -X POST http://localhost:8080/auth/register/protetor \
+  curl -X POST http://localhost:8081/auth/register/protetor \
   -H "Content-Type: application/json" \
   -d '{"nomeCompleto":"João Silva","cpf":"12345678901","email":"joao@teste.com","celular":"41888888888","password":"senha123"}'
   ```
 
 - **GET /user** - Testar autenticação (requer token JWT)
   ```bash
-  curl -H "Authorization: Bearer SEU_TOKEN_JWT" http://localhost:8080/user
+  curl -H "Authorization: Bearer SEU_TOKEN_JWT" http://localhost:8081/user
   ```
 
 ### 6. Parar os Containers
@@ -104,8 +104,8 @@ Os dados do banco PostgreSQL são persistidos através de um volume Docker chama
 
 Se você precisar realizar ajustes nas configurações:
 
-- **Portas**: Altere no arquivo `docker compose.yml`
-- **Variáveis de ambiente**: Modifique a seção `environment` no `docker compose.yml`
+- **Portas**: Altere no arquivo `docker-compose.yml`
+- **Variáveis de ambiente**: Modifique a seção `environment` no `docker-compose.yml`
 - **Configurações JPA**: Ajuste o arquivo `application.properties`
 
 ## 🧪 Ambiente de Desenvolvimento
