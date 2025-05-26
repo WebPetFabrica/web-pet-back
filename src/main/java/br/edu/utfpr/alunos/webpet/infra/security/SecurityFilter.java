@@ -1,28 +1,24 @@
 package br.edu.utfpr.alunos.webpet.infra.security;
 
-import br.edu.utfpr.alunos.webpet.domain.user.User;
-import br.edu.utfpr.alunos.webpet.domain.ong.ONG;
-import br.edu.utfpr.alunos.webpet.domain.protetor.Protetor;
-import br.edu.utfpr.alunos.webpet.repositories.UserRepository;
+import java.io.IOException;
+import java.util.Collections;
+
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import br.edu.utfpr.alunos.webpet.domain.user.BaseUser;
 import br.edu.utfpr.alunos.webpet.repositories.ONGRepository;
 import br.edu.utfpr.alunos.webpet.repositories.ProtetorRepository;
+import br.edu.utfpr.alunos.webpet.repositories.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Optional;
-
-// src/main/java/br/edu/utfpr/alunos/webpet/infra/security/SecurityFilter.java
 @Component
 @RequiredArgsConstructor
 public class SecurityFilter extends OncePerRequestFilter {
@@ -32,15 +28,21 @@ public class SecurityFilter extends OncePerRequestFilter {
     private final ProtetorRepository protetorRepository;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) 
+            throws ServletException, IOException {
         var token = this.recoverToken(request);
         
         if (token != null) {
-            var login = tokenService.validateToken(token);
-            if (login != null) {
-                UserDetails userDetails = findUserByEmail(login);
-                if (userDetails != null) {
-                    var authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            var email = tokenService.validateToken(token);
+            if (email != null) {
+                BaseUser user = findUserByEmail(email);
+                if (user != null) {
+                    var authorities = Collections.singletonList(
+                        new SimpleGrantedAuthority(user.getUserType().getRole())
+                    );
+                    var authentication = new UsernamePasswordAuthenticationToken(
+                        user, null, authorities
+                    );
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             }
@@ -49,43 +51,20 @@ public class SecurityFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private UserDetails findUserByEmail(String email) {
-        // Buscar como usuário comum
-        Optional<User> user = userRepository.findByEmail(email);
-        if (user.isPresent()) {
-            return new org.springframework.security.core.userdetails.User(
-                user.get().getEmail(), 
-                user.get().getPassword(), 
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
-            );
-        }
-
-        // Buscar como ONG
-        Optional<ONG> ong = ongRepository.findByEmail(email);
-        if (ong.isPresent()) {
-            return new org.springframework.security.core.userdetails.User(
-                ong.get().getEmail(), 
-                ong.get().getPassword(), 
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_ONG"))
-            );
-        }
-
-        // Buscar como Protetor
-        Optional<Protetor> protetor = protetorRepository.findByEmail(email);
-        if (protetor.isPresent()) {
-            return new org.springframework.security.core.userdetails.User(
-                protetor.get().getEmail(), 
-                protetor.get().getPassword(), 
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_PROTETOR"))
-            );
-        }
-
-        return null;
+    private BaseUser findUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .map(BaseUser.class::cast)
+                .orElse(ongRepository.findByEmail(email)
+                        .map(BaseUser.class::cast)
+                        .orElse(protetorRepository.findByEmail(email)
+                                .orElse(null)));
     }
 
     private String recoverToken(HttpServletRequest request) {
         var authHeader = request.getHeader("Authorization");
-        if (authHeader == null) return null;
-        return authHeader.replace("Bearer ", "");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return null;
+        }
+        return authHeader.substring(7);
     }
 }

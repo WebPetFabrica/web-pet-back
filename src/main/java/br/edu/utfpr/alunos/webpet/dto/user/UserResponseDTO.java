@@ -1,5 +1,12 @@
 package br.edu.utfpr.alunos.webpet.dto.user;
 
-public class UserResponseDTO {
-    
-}
+import br.edu.utfpr.alunos.webpet.domain.user.UserType;
+
+public record UserResponseDTO(
+    String id,
+    String email,
+    String displayName,
+    UserType userType,
+    String identifier,
+    boolean active
+) {}
