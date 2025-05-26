@@ -1,3 +1,19 @@
+package br.edu.utfpr.alunos.webpet.services;
+
+import br.edu.utfpr.alunos.webpet.dto.ONGRegisterDTO;
+import br.edu.utfpr.alunos.webpet.dto.ProtetorRegisterDTO;
+import br.edu.utfpr.alunos.webpet.dto.ResponseDTO;
+import br.edu.utfpr.alunos.webpet.entities.ONG;
+import br.edu.utfpr.alunos.webpet.entities.Protetor;
+import br.edu.utfpr.alunos.webpet.repositories.ONGRepository;
+import br.edu.utfpr.alunos.webpet.repositories.ProtetorRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+
 @Service
 @RequiredArgsConstructor
 public class UserRegistrationService {

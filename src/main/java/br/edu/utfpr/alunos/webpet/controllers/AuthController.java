@@ -6,6 +6,7 @@ import br.edu.utfpr.alunos.webpet.dto.RegisterRequestDTO;
 import br.edu.utfpr.alunos.webpet.dto.ResponseDTO;
 import br.edu.utfpr.alunos.webpet.infra.security.TokenService;
 import br.edu.utfpr.alunos.webpet.repositories.UserRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,6 +14,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import br.edu.utfpr.alunos.webpet.dto.ONGRegisterDTO;
+import br.edu.utfpr.alunos.webpet.dto.ProtetorRegisterDTO;
+import br.edu.utfpr.alunos.webpet.services.UserRegistrationService;
 
 import java.util.Optional;
 
@@ -23,6 +27,7 @@ public class AuthController {
     private final UserRepository repository;
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
+    private final UserRegistrationService userRegistrationService;
 
     @PostMapping("/register")
     public ResponseEntity register(@RequestBody RegisterRequestDTO body) {
@@ -63,7 +68,7 @@ public class AuthController {
     }
 
     @PostMapping("/register/ong")
-    public ResponseEntity<ResponseDTO> registerONG(@RequestBody ONGRegisterDTO body) {
+    public ResponseEntity<ResponseDTO> registerONG(@Valid @RequestBody ONGRegisterDTO body) {
         try {
             ResponseDTO response = userRegistrationService.registerONG(body);
             return ResponseEntity.ok(response);
@@ -73,7 +78,7 @@ public class AuthController {
     }
 
     @PostMapping("/register/protetor")
-    public ResponseEntity<ResponseDTO> registerProtetor(@RequestBody ProtetorRegisterDTO body) {
+    public ResponseEntity<ResponseDTO> registerProtetor(@Valid @RequestBody ProtetorRegisterDTO body) {
         try {
             ResponseDTO response = userRegistrationService.registerProtetor(body);
             return ResponseEntity.ok(response);
