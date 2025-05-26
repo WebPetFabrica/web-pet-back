@@ -3,32 +3,32 @@ package br.edu.utfpr.alunos.webpet.domain.user;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
-@Table(name = "users")
+@Table(name = "ongs")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User extends BaseUser {
-    @Column(nullable = false)
-    private String name;
+public class ONG extends BaseUser {
+    @Column(unique = true, nullable = false)
+    private String cnpj;
     
-    private String surname;
+    @Column(nullable = false)
+    private String nomeOng;
+    
+    private String endereco;
+    private String descricao;
     
     @Override
     public String getDisplayName() {
-        return surname != null ? name + " " + surname : name;
+        return nomeOng;
     }
     
     @Override
     public String getIdentifier() {
-        return getEmail();
+        return cnpj;
     }
 }
