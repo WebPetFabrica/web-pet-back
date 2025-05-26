@@ -1,8 +1,8 @@
 package br.edu.utfpr.alunos.webpet.infra.security;
 
 import br.edu.utfpr.alunos.webpet.domain.user.User;
-import br.edu.utfpr.alunos.webpet.entities.ONG;
-import br.edu.utfpr.alunos.webpet.entities.Protetor;
+import br.edu.utfpr.alunos.webpet.domain.ong.ONG;
+import br.edu.utfpr.alunos.webpet.domain.protetor.Protetor;
 import br.edu.utfpr.alunos.webpet.repositories.UserRepository;
 import br.edu.utfpr.alunos.webpet.repositories.ONGRepository;
 import br.edu.utfpr.alunos.webpet.repositories.ProtetorRepository;
