@@ -1,7 +1,6 @@
 /home/guarnieri/Desktop/Projeto Fábrica/web-pet-back/src/main/java/br/edu/utfpr/alunos/webpet/WebPetApplication.java
 /home/guarnieri/Desktop/Projeto Fábrica/web-pet-back/src/main/java/br/edu/utfpr/alunos/webpet/controllers/AuthController.java
 /home/guarnieri/Desktop/Projeto Fábrica/web-pet-back/src/main/java/br/edu/utfpr/alunos/webpet/controllers/UserController.java
-/home/guarnieri/Desktop/Projeto Fábrica/web-pet-back/src/main/java/br/edu/utfpr/alunos/webpet/domain/auth/AuthenticationService.java
 /home/guarnieri/Desktop/Projeto Fábrica/web-pet-back/src/main/java/br/edu/utfpr/alunos/webpet/domain/user/BaseUser.java
 /home/guarnieri/Desktop/Projeto Fábrica/web-pet-back/src/main/java/br/edu/utfpr/alunos/webpet/domain/user/ONG.java
 /home/guarnieri/Desktop/Projeto Fábrica/web-pet-back/src/main/java/br/edu/utfpr/alunos/webpet/domain/user/Protetor.java
