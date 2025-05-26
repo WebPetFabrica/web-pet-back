@@ -25,3 +25,15 @@ target/classes/br/edu/utfpr/alunos/webpet/repositories/UserRepository.class
 target/classes/br/edu/utfpr/alunos/webpet/services/UserRegistrationService.class
 target/classes/br/edu/utfpr/alunos/webpet/WebPetApplication.class
 target/test-classes/br/edu/utfpr/alunos/webpet/WebPetApplicationTests.class
+target/classes/br/edu/utfpr/alunos/webpet/WebPetApplication.class
+target/classes/br/edu/utfpr/alunos/webpet/repositories/UserRepository.class
+target/classes/br/edu/utfpr/alunos/webpet/infra/security/TokenService.class
+target/classes/br/edu/utfpr/alunos/webpet/infra/security/SecurityFilter.class
+target/classes/br/edu/utfpr/alunos/webpet/infra/security/SecurityConfig.class
+target/classes/br/edu/utfpr/alunos/webpet/infra/security/CustomUserDetailsService.class
+target/classes/br/edu/utfpr/alunos/webpet/infra/cors/CorsConfig.class
+target/classes/br/edu/utfpr/alunos/webpet/dto/ResponseDTO.class
+target/classes/br/edu/utfpr/alunos/webpet/dto/RegisterRequestDTO.class
+target/classes/br/edu/utfpr/alunos/webpet/dto/LoginRequestDTO.class
+target/classes/br/edu/utfpr/alunos/webpet/domain/user/User.class
+target/classes/br/edu/utfpr/alunos/webpet/controllers/UserController.class
