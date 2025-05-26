@@ -1,8 +1,31 @@
-target/
-.idea/
-*.iml
+# Git
 .git/
 .gitignore
-README.md
+.github/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Maven (apenas target, não .mvn)
+target/
+!.mvn/wrapper/
+
+# Documentation
 *.md
-.mvn/wrapper/maven-wrapper.jar
+docs/
+
+# Tests
+src/test/
+
+# Scripts
+*.sh
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

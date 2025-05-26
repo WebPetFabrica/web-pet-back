@@ -23,8 +23,9 @@ docker compose up -d
 ```
 
 Este comando irá:
+
 - Construir o container da aplicação Spring Boot
-- Iniciar um container PostgreSQL 
+- Iniciar um container PostgreSQL
 - Configurar a rede entre os containers
 - Expor a aplicação na porta 8081
 - Expor o banco na porta 5433 (para evitar conflitos com instalações locais)
@@ -36,26 +37,30 @@ docker compose ps
 ```
 
 Você deverá ver dois containers em execução:
+
 - `web-pet-back-app-1`
 - `web-pet-back-db-1`
 
 ### 4. Acesse a Aplicação
 
-A API estará disponível em: http://localhost:8081
+A API estará disponível em: <http://localhost:8081>
 
 ### 5. Endpoints Disponíveis
 
 - **POST /auth/register** - Registrar novo usuário
+
   ```bash
   curl -X POST http://localhost:8081/auth/register -H "Content-Type: application/json" -d '{"name":"Teste", "email":"teste@exemplo.com", "password":"senha123"}'
   ```
 
 - **POST /auth/login** - Autenticar usuário
+
   ```bash
   curl -X POST http://localhost:8081/auth/login -H "Content-Type: application/json" -d '{"email":"teste@exemplo.com", "password":"senha123"}'
   ```
 
 - **POST /auth/register/ong** - Registrar ONG
+
   ```bash
   curl -X POST http://localhost:8081/auth/register/ong \
   -H "Content-Type: application/json" \
@@ -63,6 +68,7 @@ A API estará disponível em: http://localhost:8081
   ```
 
 - **POST /auth/register/protetor** - Registrar Protetor
+
   ```bash
   curl -X POST http://localhost:8081/auth/register/protetor \
   -H "Content-Type: application/json" \
@@ -70,6 +76,7 @@ A API estará disponível em: http://localhost:8081
   ```
 
 - **GET /user** - Testar autenticação (requer token JWT)
+
   ```bash
   curl -H "Authorization: Bearer SEU_TOKEN_JWT" http://localhost:8081/user
   ```
@@ -114,6 +121,7 @@ Para desenvolvimento, você pode:
 
 1. Fazer alterações no código
 2. Reconstruir e reiniciar os containers:
+
    ```bash
    docker compose down
    docker compose up --build -d
