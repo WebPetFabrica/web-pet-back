@@ -1,9 +1,13 @@
+# Etapa de build
 FROM maven:3.9-amazoncorretto-21 as build
 WORKDIR /app
-COPY . .
+COPY pom.xml .
+RUN mvn dependency:go-offline
+COPY src ./src
 RUN mvn clean package -DskipTests
 
-FROM oraclelinux
+# Etapa de runtime
+FROM amazoncorretto:21-alpine
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8081

@@ -55,6 +55,20 @@ A API estará disponível em: http://localhost:8080
   curl -X POST http://localhost:8080/auth/login -H "Content-Type: application/json" -d '{"email":"teste@exemplo.com", "password":"senha123"}'
   ```
 
+- **POST /auth/register/ong** - Registrar ONG
+  ```bash
+  curl -X POST http://localhost:8080/auth/register/ong \
+  -H "Content-Type: application/json" \
+  -d '{"cnpj":"12345678000190","nomeOng":"ONG Teste","email":"ong@teste.com","celular":"41999999999","password":"senha123"}'
+  ```
+
+- **POST /auth/register/protetor** - Registrar Protetor
+  ```bash
+  curl -X POST http://localhost:8080/auth/register/protetor \
+  -H "Content-Type: application/json" \
+  -d '{"nomeCompleto":"João Silva","cpf":"12345678901","email":"joao@teste.com","celular":"41888888888","password":"senha123"}'
+  ```
+
 - **GET /user** - Testar autenticação (requer token JWT)
   ```bash
   curl -H "Authorization: Bearer SEU_TOKEN_JWT" http://localhost:8080/user
