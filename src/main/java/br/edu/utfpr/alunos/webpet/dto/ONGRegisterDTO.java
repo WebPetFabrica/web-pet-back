@@ -1,5 +1,6 @@
 package br.edu.utfpr.alunos.webpet.dto;
 
+import br.edu.utfpr.alunos.webpet.domain.user.UserType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import org.hibernate.validator.constraints.br.CNPJ;
@@ -25,5 +26,15 @@ public record ONGRegisterDTO(
     @Override
     public UserType getUserType() {
         return UserType.ONG;
+    }
+    
+    @Override
+    public String getEmail() {
+        return email();
+    }
+    
+    @Override
+    public String getPassword() {
+        return password();
     }
 }
