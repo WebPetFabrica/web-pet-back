@@ -1,11 +1,11 @@
 package br.edu.utfpr.alunos.webpet.dto.auth;
 
-import jakarta.validation.constraints.Email;
+import br.edu.utfpr.alunos.webpet.infra.validation.ValidEmail;
 import jakarta.validation.constraints.NotBlank;
 
 public record LoginRequestDTO(
     @NotBlank(message = "Email é obrigatório")
-    @Email(message = "Email inválido")
+    @ValidEmail
     String email,
     
     @NotBlank(message = "Senha é obrigatória")

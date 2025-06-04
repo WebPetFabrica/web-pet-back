@@ -1,7 +1,8 @@
 package br.edu.utfpr.alunos.webpet.dto.auth;
 
 import br.edu.utfpr.alunos.webpet.infra.validation.CPF;
-import jakarta.validation.constraints.Email;
+import br.edu.utfpr.alunos.webpet.infra.validation.ValidEmail;
+import br.edu.utfpr.alunos.webpet.infra.validation.ValidPassword;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
@@ -14,7 +15,7 @@ public record ProtetorRegisterDTO(
     String cpf,
     
     @NotBlank(message = "Email é obrigatório")
-    @Email(message = "Email inválido")
+    @ValidEmail (message = "Email inválido")
     String email,
     
     @NotBlank(message = "Celular é obrigatório")
@@ -22,5 +23,6 @@ public record ProtetorRegisterDTO(
     String celular,
     
     @NotBlank(message = "Senha é obrigatória")
+    @ValidPassword
     String password
 ) {}
