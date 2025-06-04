@@ -1,12 +1,13 @@
 package br.edu.utfpr.alunos.webpet.dto.auth;
 
+import br.edu.utfpr.alunos.webpet.infra.validation.CNPJ;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
 public record ONGRegisterDTO(
     @NotBlank(message = "CNPJ é obrigatório")
-    @Pattern(regexp = "\\d{14}", message = "CNPJ deve conter 14 dígitos")
+    @CNPJ
     String cnpj,
     
     @NotBlank(message = "Nome da ONG é obrigatório")

@@ -20,6 +20,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    @ExceptionHandler(AccountLockedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccountLocked(AccountLockedException e) {
+        Map<String, Object> error = new HashMap<>();
+        error.put("message", e.getMessage());
+        error.put("locked", true);
+        error.put("lockoutDuration", "30 minutos");
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(error);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationException(MethodArgumentNotValidException e) {
         Map<String, String> errors = new HashMap<>();
