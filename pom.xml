@@ -20,6 +20,7 @@
         <lombok.version>1.18.32</lombok.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <springdoc.version>2.3.0</springdoc.version>
+        <flyway.version>10.8.1</flyway.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -125,6 +126,15 @@
             <artifactId>springdoc-openapi-starter-common</artifactId>
             <version>${springdoc.version}</version>
         </dependency>
+        <!-- Flyway for Database Migration -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -163,6 +173,46 @@
                     </excludes>
                 </configuration>
             </plugin>
+            <!-- Flyway Maven Plugin for Database Migration -->
+            <plugin>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <version>${flyway.version}</version>
+                <configuration>
+                    <url>${flyway.url}</url>
+                    <user>${flyway.user}</user>
+                    <password>${flyway.password}</password>
+                    <locations>
+                        <location>classpath:db/migration</location>
+                    </locations>
+                    <baselineOnMigrate>true</baselineOnMigrate>
+                    <validateOnMigrate>true</validateOnMigrate>
+                    <cleanDisabled>true</cleanDisabled>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
+    
+    <!-- Maven Profiles for Environment-specific Configuration -->
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <flyway.url>jdbc:postgresql://localhost:5433/webpet_db</flyway.url>
+                <flyway.user>postgres</flyway.user>
+                <flyway.password>postgres</flyway.password>
+            </properties>
+        </profile>
+        <profile>
+            <id>prod</id>
+            <properties>
+                <flyway.url>${SPRING_DATASOURCE_URL}</flyway.url>
+                <flyway.user>${SPRING_DATASOURCE_USERNAME}</flyway.user>
+                <flyway.password>${SPRING_DATASOURCE_PASSWORD}</flyway.password>
+            </properties>
+        </profile>
+    </profiles>
 </project>
