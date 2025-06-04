@@ -26,6 +26,30 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Implementation of authentication services for the WebPet system.
+ * 
+ * <p>Handles user authentication and registration for all user types (User, ONG, Protetor).
+ * Implements security features including:
+ * <ul>
+ *   <li>Brute force protection via login attempt tracking</li>
+ *   <li>JWT token generation and validation</li>
+ *   <li>Password encryption using BCrypt</li>
+ *   <li>Comprehensive audit logging</li>
+ * </ul>
+ * 
+ * <p>Business Rules:
+ * <ul>
+ *   <li>Email must be unique across all user types</li>
+ *   <li>CNPJ must be unique for ONGs</li>
+ *   <li>CPF must be unique for Protetors</li>
+ *   <li>Account lockout after 5 failed login attempts</li>
+ *   <li>JWT tokens expire after 2 hours</li>
+ * </ul>
+ * 
+ * @author WebPet Team
+ * @since 1.0.0
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -40,11 +64,29 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final LoginAttemptService loginAttemptService;
     private final ExceptionLogger exceptionLogger;
 
+    /**
+     * Authenticates a user using email and password credentials.
+     * 
+     * <p>Security features:
+     * <ul>
+     *   <li>Checks for account lockout before attempting authentication</li>
+     *   <li>Records failed attempts for brute force protection</li>
+     *   <li>Generates JWT token on successful authentication</li>
+     *   <li>Logs all authentication attempts for audit</li>
+     * </ul>
+     * 
+     * @param loginDTO contains user credentials (email and password)
+     * @return authentication response with user name, JWT token, and token type
+     * @throws AccountLockedException when account is temporarily locked due to failed attempts
+     * @throws AuthenticationException when credentials are invalid
+     * @throws SystemException when unexpected error occurs during authentication
+     */
     @Override
     public AuthResponseDTO login(LoginRequestDTO loginDTO) {
         String correlationId = MDC.get("correlationId");
         log.info("Login attempt for email: {} [correlationId: {}]", loginDTO.email(), correlationId);
         
+        // Check for account lockout to prevent brute force attacks
         if (loginAttemptService.isBlocked(loginDTO.email())) {
             log.warn("Login blocked for email: {} - account locked [correlationId: {}]", 
                 loginDTO.email(), correlationId);
@@ -53,10 +95,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         try {
+            // Delegate authentication to Spring Security
             Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginDTO.email(), loginDTO.password())
             );
             
+            // Reset failed attempt counter on successful authentication
             loginAttemptService.recordSuccessfulLogin(loginDTO.email());
             
             UserDetails userDetails = (UserDetails) auth.getPrincipal();
@@ -67,6 +111,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             return new AuthResponseDTO(displayName, token, "Bearer");
             
         } catch (org.springframework.security.authentication.BadCredentialsException e) {
+            // Record failed attempt for brute force protection
             loginAttemptService.recordFailedAttempt(loginDTO.email());
             int remaining = loginAttemptService.getRemainingAttempts(loginDTO.email());
             
@@ -83,6 +128,22 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
     }
 
+    /**
+     * Registers a new regular user in the system.
+     * 
+     * <p>Business Rules:
+     * <ul>
+     *   <li>Email must be unique across all user types</li>
+     *   <li>Password is encrypted using BCrypt before storage</li>
+     *   <li>User is automatically activated upon registration</li>
+     *   <li>JWT token is generated for immediate authentication</li>
+     * </ul>
+     * 
+     * @param registerDTO user registration data (name, email, password)
+     * @return authentication response with user name and JWT token
+     * @throws ValidationException when email already exists
+     * @throws SystemException when database error occurs during registration
+     */
     @Override
     @Transactional
     public AuthResponseDTO registerUser(RegisterRequestDTO registerDTO) {
@@ -90,6 +151,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         log.info("User registration attempt for email: {} [correlationId: {}]", 
             registerDTO.email(), correlationId);
         
+        // Validate email uniqueness across all user types
         if (userRepository.existsByEmail(registerDTO.email())) {
             log.warn("User registration failed - email already exists: {} [correlationId: {}]", 
                 registerDTO.email(), correlationId);
@@ -98,6 +160,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         try {
+            // Create new user with encrypted password
             User user = User.builder()
                 .name(registerDTO.name())
                 .email(registerDTO.email())
@@ -120,6 +183,22 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
     }
 
+    /**
+     * Registers a new ONG (Non-Governmental Organization) in the system.
+     * 
+     * <p>Business Rules:
+     * <ul>
+     *   <li>Email must be unique across all user types</li>
+     *   <li>CNPJ must be unique among ONGs</li>
+     *   <li>CNPJ validation is performed at DTO level</li>
+     *   <li>Password is encrypted using BCrypt before storage</li>
+     * </ul>
+     * 
+     * @param ongDTO ONG registration data (CNPJ, name, email, phone, password)
+     * @return authentication response with ONG name and JWT token
+     * @throws ValidationException when email or CNPJ already exists
+     * @throws SystemException when database error occurs during registration
+     */
     @Override
     @Transactional
     public AuthResponseDTO registerONG(ONGRegisterDTO ongDTO) {
@@ -127,6 +206,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         log.info("ONG registration attempt for email: {} [correlationId: {}]", 
             ongDTO.email(), correlationId);
         
+        // Validate email uniqueness
         if (ongRepository.existsByEmail(ongDTO.email())) {
             log.warn("ONG registration failed - email already exists: {} [correlationId: {}]", 
                 ongDTO.email(), correlationId);
@@ -134,6 +214,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new ValidationException(ErrorCode.USER_EMAIL_EXISTS);
         }
         
+        // Validate CNPJ uniqueness
         if (ongRepository.existsByCnpj(ongDTO.cnpj())) {
             log.warn("ONG registration failed - CNPJ already exists: {} [correlationId: {}]", 
                 ongDTO.cnpj(), correlationId);
@@ -165,6 +246,22 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
     }
 
+    /**
+     * Registers a new Protetor (Independent Animal Protector) in the system.
+     * 
+     * <p>Business Rules:
+     * <ul>
+     *   <li>Email must be unique across all user types</li>
+     *   <li>CPF must be unique among Protetors</li>
+     *   <li>CPF validation is performed at DTO level</li>
+     *   <li>Password is encrypted using BCrypt before storage</li>
+     * </ul>
+     * 
+     * @param protetorDTO Protetor registration data (CPF, name, email, phone, password)
+     * @return authentication response with Protetor name and JWT token
+     * @throws ValidationException when email or CPF already exists
+     * @throws SystemException when database error occurs during registration
+     */
     @Override
     @Transactional
     public AuthResponseDTO registerProtetor(ProtetorRegisterDTO protetorDTO) {
@@ -210,6 +307,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
     }
 
+    /**
+     * Finds the display name for a user by email address.
+     * Searches across all user types (User, ONG, Protetor).
+     * 
+     * @param email the user's email address
+     * @return the user's display name, or "Usuário" if not found
+     */
     private String findDisplayNameByEmail(String email) {
         return userRepository.findByEmail(email)
             .map(BaseUser::getDisplayName)
@@ -220,6 +324,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     .orElse("Usuário")));
     }
 
+    /**
+     * Generates a JWT token for the given email address.
+     * Creates a minimal UserDetails object for token generation.
+     * 
+     * @param email the user's email address
+     * @return generated JWT token
+     */
     private String generateTokenForEmail(String email) {
         UserDetails userDetails = new org.springframework.security.core.userdetails.User(
             email, "", java.util.Collections.emptyList()

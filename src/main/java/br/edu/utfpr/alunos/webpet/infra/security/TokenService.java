@@ -13,11 +13,33 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 
+/**
+ * Service responsible for JWT token generation and validation.
+ * 
+ * <p>Security features:
+ * <ul>
+ *   <li>HMAC256 algorithm for token signing</li>
+ *   <li>2-hour token expiration</li>
+ *   <li>Issuer validation ("webpet")</li>
+ *   <li>Subject contains user email</li>
+ * </ul>
+ * 
+ * @author WebPet Team
+ * @since 1.0.0
+ */
 @Service
 public class TokenService {
+    
     @Value("${api.security.token.secret}")
     private String secret;
 
+    /**
+     * Generates a JWT token for authenticated user.
+     * 
+     * @param userDetails authenticated user information
+     * @return signed JWT token valid for 2 hours
+     * @throws RuntimeException if token generation fails
+     */
     public String generateToken(UserDetails userDetails) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
@@ -27,10 +49,16 @@ public class TokenService {
                     .withExpiresAt(generationExpirationDate())
                     .sign(algorithm);
         } catch (JWTCreationException exception) {
-            throw new RuntimeException("Erro ao gerar token", exception);
+            throw new RuntimeException("Error generating token", exception);
         }
     }
 
+    /**
+     * Validates JWT token and extracts user email.
+     * 
+     * @param token JWT token to validate
+     * @return user email if token is valid, null otherwise
+     */
     public String validateToken(String token) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
@@ -44,6 +72,12 @@ public class TokenService {
         }
     }
 
+    /**
+     * Calculates token expiration time (2 hours from now).
+     * Uses UTC-3 timezone for Brazilian time.
+     * 
+     * @return expiration instant
+     */
     private Instant generationExpirationDate() {
         return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
     }
