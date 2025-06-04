@@ -15,6 +15,8 @@ import br.edu.utfpr.alunos.webpet.infra.security.TokenService;
 import br.edu.utfpr.alunos.webpet.repositories.ONGRepository;
 import br.edu.utfpr.alunos.webpet.repositories.ProtetorRepository;
 import br.edu.utfpr.alunos.webpet.repositories.UserRepository;
+import br.edu.utfpr.alunos.webpet.services.validation.EmailConfirmationService;
+import br.edu.utfpr.alunos.webpet.services.validation.PasswordHistoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
@@ -35,6 +37,8 @@ import org.springframework.transaction.annotation.Transactional;
  *   <li>Brute force protection via login attempt tracking</li>
  *   <li>JWT token generation and validation</li>
  *   <li>Password encryption using BCrypt</li>
+ *   <li>Password history tracking for security compliance</li>
+ *   <li>Email confirmation for account verification</li>
  *   <li>Comprehensive audit logging</li>
  * </ul>
  * 
@@ -45,6 +49,8 @@ import org.springframework.transaction.annotation.Transactional;
  *   <li>CPF must be unique for Protetors</li>
  *   <li>Account lockout after 5 failed login attempts</li>
  *   <li>JWT tokens expire after 2 hours</li>
+ *   <li>Password history is maintained for last 5 passwords</li>
+ *   <li>Email confirmation required for account activation</li>
  * </ul>
  * 
  * @author WebPet Team
@@ -63,6 +69,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final LoginAttemptService loginAttemptService;
     private final ExceptionLogger exceptionLogger;
+    private final PasswordHistoryService passwordHistoryService;
+    private final EmailConfirmationService emailConfirmationService;
 
     /**
      * Authenticates a user using email and password credentials.
@@ -135,7 +143,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
      * <ul>
      *   <li>Email must be unique across all user types</li>
      *   <li>Password is encrypted using BCrypt before storage</li>
-     *   <li>User is automatically activated upon registration</li>
+     *   <li>Password is saved to history for future validation</li>
+     *   <li>Email confirmation is sent for account verification</li>
      *   <li>JWT token is generated for immediate authentication</li>
      * </ul>
      * 
@@ -160,15 +169,27 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         try {
+            String encodedPassword = passwordEncoder.encode(registerDTO.password());
+            
             // Create new user with encrypted password
             User user = User.builder()
                 .name(registerDTO.name())
                 .email(registerDTO.email())
-                .password(passwordEncoder.encode(registerDTO.password()))
+                .password(encodedPassword)
                 .celular("")
                 .build();
             
             user = userRepository.save(user);
+            
+            // Save password to history for future validation
+            passwordHistoryService.savePasswordToHistory(user.getId(), encodedPassword);
+            log.debug("Password saved to history for user: {} [correlationId: {}]", 
+                user.getEmail(), correlationId);
+            
+            // Send email confirmation for account verification
+            emailConfirmationService.sendConfirmationEmail(user);
+            log.debug("Confirmation email sent for user: {} [correlationId: {}]", 
+                user.getEmail(), correlationId);
             
             String token = generateTokenForEmail(user.getEmail());
             log.info("User registration successful for email: {} [correlationId: {}]", 
@@ -192,6 +213,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
      *   <li>CNPJ must be unique among ONGs</li>
      *   <li>CNPJ validation is performed at DTO level</li>
      *   <li>Password is encrypted using BCrypt before storage</li>
+     *   <li>Password is saved to history for future validation</li>
+     *   <li>Email confirmation is sent for account verification</li>
      * </ul>
      * 
      * @param ongDTO ONG registration data (CNPJ, name, email, phone, password)
@@ -223,15 +246,27 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         try {
+            String encodedPassword = passwordEncoder.encode(ongDTO.password());
+            
             ONG ong = ONG.builder()
                 .cnpj(ongDTO.cnpj())
                 .nomeOng(ongDTO.nomeOng())
                 .email(ongDTO.email())
-                .password(passwordEncoder.encode(ongDTO.password()))
+                .password(encodedPassword)
                 .celular(ongDTO.celular())
                 .build();
             
             ong = ongRepository.save(ong);
+            
+            // Save password to history for future validation
+            passwordHistoryService.savePasswordToHistory(ong.getId(), encodedPassword);
+            log.debug("Password saved to history for ONG: {} [correlationId: {}]", 
+                ong.getEmail(), correlationId);
+            
+            // Send email confirmation for account verification
+            emailConfirmationService.sendConfirmationEmail(ong);
+            log.debug("Confirmation email sent for ONG: {} [correlationId: {}]", 
+                ong.getEmail(), correlationId);
             
             String token = generateTokenForEmail(ong.getEmail());
             log.info("ONG registration successful for email: {} [correlationId: {}]", 
@@ -255,6 +290,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
      *   <li>CPF must be unique among Protetors</li>
      *   <li>CPF validation is performed at DTO level</li>
      *   <li>Password is encrypted using BCrypt before storage</li>
+     *   <li>Password is saved to history for future validation</li>
+     *   <li>Email confirmation is sent for account verification</li>
      * </ul>
      * 
      * @param protetorDTO Protetor registration data (CPF, name, email, phone, password)
@@ -269,6 +306,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         log.info("Protetor registration attempt for email: {} [correlationId: {}]", 
             protetorDTO.email(), correlationId);
         
+        // Validate email uniqueness
         if (protetorRepository.existsByEmail(protetorDTO.email())) {
             log.warn("Protetor registration failed - email already exists: {} [correlationId: {}]", 
                 protetorDTO.email(), correlationId);
@@ -276,6 +314,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new ValidationException(ErrorCode.USER_EMAIL_EXISTS);
         }
         
+        // Validate CPF uniqueness
         if (protetorRepository.existsByCpf(protetorDTO.cpf())) {
             log.warn("Protetor registration failed - CPF already exists: {} [correlationId: {}]", 
                 protetorDTO.cpf(), correlationId);
@@ -284,15 +323,27 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
         try {
+            String encodedPassword = passwordEncoder.encode(protetorDTO.password());
+            
             Protetor protetor = Protetor.builder()
                 .cpf(protetorDTO.cpf())
                 .nomeCompleto(protetorDTO.nomeCompleto())
                 .email(protetorDTO.email())
-                .password(passwordEncoder.encode(protetorDTO.password()))
+                .password(encodedPassword)
                 .celular(protetorDTO.celular())
                 .build();
             
             protetor = protetorRepository.save(protetor);
+            
+            // Save password to history for future validation
+            passwordHistoryService.savePasswordToHistory(protetor.getId(), encodedPassword);
+            log.debug("Password saved to history for Protetor: {} [correlationId: {}]", 
+                protetor.getEmail(), correlationId);
+            
+            // Send email confirmation for account verification
+            emailConfirmationService.sendConfirmationEmail(protetor);
+            log.debug("Confirmation email sent for Protetor: {} [correlationId: {}]", 
+                protetor.getEmail(), correlationId);
             
             String token = generateTokenForEmail(protetor.getEmail());
             log.info("Protetor registration successful for email: {} [correlationId: {}]", 

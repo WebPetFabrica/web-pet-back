@@ -1,52 +1,41 @@
 package br.edu.utfpr.alunos.webpet.infra.validation;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
+import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import jakarta.validation.Payload;
 
-class CpfCnpjValidatorTest {
+public class CpfValidator implements ConstraintValidator<CPF, String> {
     
-    private CpfValidator cpfValidator;
-    private CnpjValidator cnpjValidator;
-    private ConstraintValidatorContext context;
-    
-    @BeforeEach
-    void setUp() {
-        cpfValidator = new CpfValidator();
-        cnpjValidator = new CnpjValidator();
-        // Mock context não é necessário para estes testes
+    @Override
+    public boolean isValid(String cpf, ConstraintValidatorContext context) {
+        return cpf != null && isValidCpf(cpf);
     }
     
-    @Test
-    void shouldValidateCpfCorrectly() {
-        assertThat(cpfValidator.isValid("11144477735", context)).isTrue();
-        assertThat(cpfValidator.isValid("111.444.777-35", context)).isTrue();
-        assertThat(cpfValidator.isValid("12345678909", context)).isTrue();
+    private boolean isValidCpf(String cpf) {
+        cpf = cpf.replaceAll("\\D", "");
+        
+        if (cpf.length() != 11 || cpf.matches("(\\d)\\1{10}")) {
+            return false;
+        }
+        
+        return calculateFirstDigit(cpf) == Character.getNumericValue(cpf.charAt(9)) &&
+               calculateSecondDigit(cpf) == Character.getNumericValue(cpf.charAt(10));
     }
     
-    @Test
-    void shouldRejectInvalidCpf() {
-        assertThat(cpfValidator.isValid("11111111111", context)).isFalse(); // Sequência
-        assertThat(cpfValidator.isValid("12345678901", context)).isFalse(); // Inválido
-        assertThat(cpfValidator.isValid("123", context)).isFalse(); // Muito curto
-        assertThat(cpfValidator.isValid(null, context)).isFalse(); // Null
+    private int calculateFirstDigit(String cpf) {
+        int sum = 0;
+        for (int i = 0; i < 9; i++) {
+            sum += Character.getNumericValue(cpf.charAt(i)) * (10 - i);
+        }
+        int remainder = sum % 11;
+        return remainder < 2 ? 0 : 11 - remainder;
     }
     
-    @Test
-    void shouldValidateCnpjCorrectly() {
-        assertThat(cnpjValidator.isValid("11222333000181", context)).isTrue();
-        assertThat(cnpjValidator.isValid("11.222.333/0001-81", context)).isTrue();
-    }
-    
-    @Test
-    void shouldRejectInvalidCnpj() {
-        assertThat(cnpjValidator.isValid("11111111111111", context)).isFalse(); // Sequência
-        assertThat(cnpjValidator.isValid("12345678000190", context)).isFalse(); // Inválido
-        assertThat(cnpjValidator.isValid("123", context)).isFalse(); // Muito curto
-        assertThat(cnpjValidator.isValid(null, context)).isFalse(); // Null
+    private int calculateSecondDigit(String cpf) {
+        int sum = 0;
+        for (int i = 0; i < 10; i++) {
+            sum += Character.getNumericValue(cpf.charAt(i)) * (11 - i);
+        }
+        int remainder = sum % 11;
+        return remainder < 2 ? 0 : 11 - remainder;
     }
 }
