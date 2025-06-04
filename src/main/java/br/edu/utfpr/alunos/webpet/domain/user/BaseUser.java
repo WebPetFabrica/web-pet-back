@@ -13,13 +13,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 
 @MappedSuperclass
 @Getter
 @Setter
-@SuperBuilder
+@NoArgsConstructor
 public abstract class BaseUser {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -46,6 +46,14 @@ public abstract class BaseUser {
     
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+    
+    protected BaseUser(String email, String password, String celular, UserType userType) {
+        this.email = email;
+        this.password = password;
+        this.celular = celular;
+        this.userType = userType;
+        this.active = true;
+    }
     
     public abstract String getDisplayName();
     public abstract String getIdentifier();

@@ -12,7 +12,6 @@ import br.edu.utfpr.alunos.webpet.domain.user.BaseUser;
 import br.edu.utfpr.alunos.webpet.domain.user.ONG;
 import br.edu.utfpr.alunos.webpet.domain.user.Protetor;
 import br.edu.utfpr.alunos.webpet.domain.user.User;
-import br.edu.utfpr.alunos.webpet.domain.user.UserType;
 import br.edu.utfpr.alunos.webpet.dto.auth.AuthResponseDTO;
 import br.edu.utfpr.alunos.webpet.dto.auth.LoginRequestDTO;
 import br.edu.utfpr.alunos.webpet.dto.auth.ONGRegisterDTO;
@@ -74,12 +73,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         User user = User.builder()
             .name(registerDTO.name())
+            .email(registerDTO.email())
+            .password(passwordEncoder.encode(registerDTO.password()))
+            .celular("")
             .build();
-        
-        user.setEmail(registerDTO.email());
-        user.setPassword(passwordEncoder.encode(registerDTO.password()));
-        user.setCelular("");
-        user.setUserType(UserType.USER);
         
         user = userRepository.save(user);
         
@@ -101,12 +98,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         ONG ong = ONG.builder()
             .cnpj(ongDTO.cnpj())
             .nomeOng(ongDTO.nomeOng())
+            .email(ongDTO.email())
+            .password(passwordEncoder.encode(ongDTO.password()))
+            .celular(ongDTO.celular())
             .build();
-        
-        ong.setEmail(ongDTO.email());
-        ong.setPassword(passwordEncoder.encode(ongDTO.password()));
-        ong.setCelular(ongDTO.celular());
-        ong.setUserType(UserType.ONG);
         
         ong = ongRepository.save(ong);
         
@@ -128,12 +123,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         Protetor protetor = Protetor.builder()
             .cpf(protetorDTO.cpf())
             .nomeCompleto(protetorDTO.nomeCompleto())
+            .email(protetorDTO.email())
+            .password(passwordEncoder.encode(protetorDTO.password()))
+            .celular(protetorDTO.celular())
             .build();
-        
-        protetor.setEmail(protetorDTO.email());
-        protetor.setPassword(passwordEncoder.encode(protetorDTO.password()));
-        protetor.setCelular(protetorDTO.celular());
-        protetor.setUserType(UserType.PROTETOR);
         
         protetor = protetorRepository.save(protetor);
         
