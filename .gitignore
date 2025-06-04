@@ -1,0 +1,47 @@
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# Java/Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Spring Boot - Only ignore local/sensitive config files
+application-local.properties
+application-secret.properties
+application-dev-local.properties
+
+# Logs
+logs/
+*.log
+
+# Docker
+docker-compose.override.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment and Credentials
+.env
+.env.*
+*.pem
+*.key
+
+# Database
+*.db
+*.sqlite
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~.nib

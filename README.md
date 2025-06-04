@@ -4,79 +4,195 @@ Aplicação para gerenciamento de adoção de animais desenvolvida com Spring Bo
 
 ## 📚 Descrição
 
-Este projeto tem como objetivo centralizar e facilitar o processo de adoção de animais, oferecendo uma plataforma confiável, atualizada e de fácil acesso. Ele disponibiliza funcionalidades para cadastro, autenticação e gerenciamento de usuários, além de permitir a visualização e administração dos animais disponíveis para adoção. A iniciativa busca resolver a dificuldade enfrentada por muitas pessoas em encontrar informações organizadas sobre pets para adoção, superando a atual dependência de contatos informais com ONGs ou lares temporários por meio de redes sociais ou aplicativos de mensagens, que tornam o processo lento e ineficiente.
+Este projeto tem como objetivo centralizar e facilitar o processo de adoção de animais, oferecendo uma plataforma confiável, atualizada e de fácil acesso. Ele disponibiliza funcionalidades para cadastro, autenticação e gerenciamento de usuários, além de permitir a visualização e administração dos animais disponíveis para adoção.
+
+## 🏗️ Arquitetura
+
+### Decisões Arquiteturais
+
+- **Herança Table Per Class**: Estratégia de herança para usuários (User, ONG, Protetor)
+- **UUID como Primary Key**: Melhor escalabilidade e segurança
+- **Soft Delete**: Flag `active` para preservar dados de auditoria
+- **JWT Authentication**: Tokens com expiração de 2 horas
+- **BCrypt Password Encoding**: Criptografia robusta para senhas
+- **Rate Limiting**: Proteção contra ataques de força bruta
+- **Correlation ID**: Rastreamento de requisições para logs
+
+### Regras de Negócio
+
+#### Autenticação
+- Email único entre todos os tipos de usuário
+- CNPJ único para ONGs
+- CPF único para Protetores
+- Bloqueio após 5 tentativas de login falhas
+- Lockout de 30 minutos após bloqueio
+
+#### Usuários
+- Soft delete preserva dados para auditoria
+- Timestamps automáticos (created_at, updated_at)
+- Validação de CPF/CNPJ via anotações customizadas
 
 ## 🚀 Tecnologias Utilizadas
 
 ### ✅ Back-end (Java + Spring Boot)
 
-- **Java 21**  
-  Linguagem principal do projeto.
-
-- **Spring Boot 3.4.5**  
-  Framework que simplifica a criação de aplicações Spring.
-
-- **Spring Web**  
-  Permite criar APIs REST de forma simples e organizada.
-
-- **Spring Security**  
-  Gerencia autenticação e autorização, protegendo as rotas da aplicação.
-
-- **Spring Data JPA**  
-  Abstrai o acesso ao banco de dados, usando a especificação JPA.
-
-- **Spring Modulith**  
-  Auxilia na organização modular de aplicações monolíticas, separando responsabilidades e facilitando testes e manutenção.
-
-- **PostgreSQL Driver** (`org.postgresql`)  
-  Driver JDBC utilizado para conectar a aplicação com o banco de dados PostgreSQL.
-
-- **Lombok**  
-  Biblioteca que reduz o boilerplate de código (como getters, setters e construtores), usando anotações.
-
-- **Auth0 Java JWT** (`com.auth0:java-jwt`)  
-  Utilizado para criar, assinar e validar tokens JWT para autenticação baseada em token.
+- **Java 21** - Linguagem principal do projeto
+- **Spring Boot 3.4.5** - Framework principal
+- **Spring Web** - APIs REST
+- **Spring Security** - Autenticação e autorização
+- **Spring Data JPA** - Acesso ao banco de dados
+- **PostgreSQL** - Banco de dados principal
+- **JWT (Auth0)** - Tokens de autenticação
+- **MapStruct** - Mapeamento de DTOs
+- **SpringDoc OpenAPI** - Documentação da API
 
 ### 🧪 Testes
 
-- **Spring Boot Starter Test**  
-  Conjunto de ferramentas para testes de unidade e integração.
-
-- **Spring Security Test**  
-  Auxilia na simulação e verificação de autenticação/autorização em testes.
+- **Spring Boot Starter Test** - Testes unitários e integração
+- **H2 Database** - Banco em memória para testes
 
 ### 💻 Desenvolvimento
 
-- **Spring Boot DevTools**  
-  Fornece melhorias para o desenvolvimento local, como reload automático ao salvar arquivos.
+- **Spring Boot DevTools** - Hot reload
+- **Lombok** - Redução de boilerplate
 
-### 🛠️ Build
+## 📖 Documentação da API
 
-- **Maven**  
-  Ferramenta de build e gerenciamento de dependências.
+### Swagger UI
+- **URL**: http://localhost:8081/swagger-ui.html
+- **OpenAPI JSON**: http://localhost:8081/api-docs
 
----
+### Endpoints Principais
+
+#### Autenticação
+- `POST /auth/login` - Login universal
+- `POST /auth/register` - Cadastro usuário comum
+- `POST /auth/register/ong` - Cadastro ONG
+- `POST /auth/register/protetor` - Cadastro protetor
+
+#### Usuário (Autenticado)
+- `GET /user` - Perfil atual
+- `GET /user/{id}` - Usuário por ID
+- `PATCH /user/deactivate` - Desativar conta
+- `PATCH /user/activate` - Ativar conta
 
 ## ⚙️ Configuração do Projeto
 
 ### Pré-requisitos
 
-- Java 21 instalado
-- PostgreSQL configurado
-- Maven instalado
+- Java 21
+- PostgreSQL
+- Maven
+- Docker (opcional)
+
+### Variáveis de Ambiente
+
+```bash
+# Banco de dados
+SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/webpet_db
+SPRING_DATASOURCE_USERNAME=postgres
+SPRING_DATASOURCE_PASSWORD=postgres
+
+# Segurança
+JWT_SECRET=sua-chave-secreta-256-bits
+
+# CORS
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+```
 
 ### Clonando o Repositório
 
 ```bash
 git clone https://github.com/WebPetFabrica/web-pet-back.git
+cd web-pet-back
 ```
-## 🚀 Execução Local:
-#### Abra o arquivo com o IntelliJ ou eclipse(Sugiro IntelliJ) e em seguida basta executar o seguinte comando no terminal:
+
+## 🚀 Execução
+
+### Local com Maven
 ```bash
 ./mvnw spring-boot:run
 ```
 
-#### Ou via IDE como IntelliJ ou Eclipse, basta rodar a classe WebPetApplication.
+### Com Docker
+```bash
+docker compose up -d
+```
 
-## 🐳 Com Docker
-Para executar o projeto com Docker, consulte as [instruções detalhadas de Docker](DOCKER.md).
+## 📋 Estrutura do Projeto
+
+```
+src/main/java/br/edu/utfpr/alunos/webpet/
+├── controllers/              # REST Controllers
+├── domain/                   # Entidades de domínio
+│   └── user/                # Hierarquia de usuários
+├── dto/                     # Data Transfer Objects
+│   ├── auth/               # DTOs de autenticação
+│   └── user/               # DTOs de usuário
+├── infra/                  # Infraestrutura
+│   ├── config/            # Configurações
+│   ├── exception/         # Tratamento de exceções
+│   ├── logging/           # Sistema de logs
+│   ├── openapi/           # Documentação OpenAPI
+│   ├── security/          # Configurações de segurança
+│   └── validation/        # Validadores customizados
+├── mapper/                # MapStruct mappers
+├── repositories/          # Repositórios JPA
+└── services/             # Serviços de negócio
+    ├── auth/             # Serviços de autenticação
+    ├── cache/            # Serviços de cache
+    └── user/             # Serviços de usuário
+```
+
+## 🧪 Testes
+
+```bash
+# Executar todos os testes
+./mvnw test
+
+# Executar testes com coverage
+./mvnw test jacoco:report
+```
+
+## 📊 Monitoramento
+
+### Logs
+- Correlation ID para rastreamento
+- Structured logging com Logback
+- Diferentes níveis por ambiente
+
+### Cache
+- Redis para cache distribuído
+- Métricas de hit/miss ratio
+- TTL configurável por tipo de cache
+
+### Segurança
+- Rate limiting configurável
+- Audit logs para autenticação
+- Monitoramento de tentativas de login
+
+## 🤝 Contribuição
+
+1. Fork o projeto
+2. Crie uma feature branch (`git checkout -b feature/nova-funcionalidade`)
+3. Commit suas mudanças (`git commit -m 'Add nova funcionalidade'`)
+4. Push para a branch (`git push origin feature/nova-funcionalidade`)
+5. Abra um Pull Request
+
+## 📝 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+## 👥 Equipe
+
+**Definições e Acordos**
+* Papéis definidos:
+   * **PO**: Anna Hellen A. Moura
+   * **Líder Técnico**: Juliano Araujo e Rodrigo Fries
+   * **Desenvolvedores**: Juliano Araujo, Rodrigo Fries, Victor Galvão, Gabriel Guarnieri, Ana Clara Santana
+   * **QA / Testes**: Gabriela Barbieri
+   * **UX/UI**: Luis Henrique
+
+---
+
+Para mais informações, consulte a [documentação da API](http://localhost:8081/swagger-ui.html) ou os [guias do Spring Boot](https://spring.io/guides).
