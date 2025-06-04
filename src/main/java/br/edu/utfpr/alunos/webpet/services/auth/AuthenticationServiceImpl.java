@@ -1,5 +1,7 @@
 package br.edu.utfpr.alunos.webpet.services.auth;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -28,6 +30,9 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class AuthenticationServiceImpl implements AuthenticationService {
+    
+    private static final Logger log = LoggerFactory.getLogger(AuthenticationServiceImpl.class);
+    
     private final UserRepository userRepository;
     private final ONGRepository ongRepository;
     private final ProtetorRepository protetorRepository;
@@ -38,7 +43,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public AuthResponseDTO login(LoginRequestDTO loginDTO) {
+        log.info("Login attempt for email: {}", loginDTO.email());
+        
         if (loginAttemptService.isBlocked(loginDTO.email())) {
+            log.warn("Login blocked for email: {} - too many attempts", loginDTO.email());
             throw new AccountLockedException("Conta temporariamente bloqueada devido a muitas tentativas de login");
         }
 
@@ -53,11 +61,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             String token = tokenService.generateToken(userDetails);
             String displayName = findDisplayNameByEmail(loginDTO.email());
             
+            log.info("Login successful for email: {}", loginDTO.email());
             return new AuthResponseDTO(displayName, token, "Bearer");
+            
         } catch (Exception e) {
             loginAttemptService.recordFailedAttempt(loginDTO.email());
             int remaining = loginAttemptService.getRemainingAttempts(loginDTO.email());
             
+            log.warn("Login failed for email: {} - {} attempts remaining", loginDTO.email(), remaining);
             throw new BusinessException(
                 String.format("Credenciais inválidas. %d tentativas restantes.", remaining)
             );
@@ -67,7 +78,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     @Transactional
     public AuthResponseDTO registerUser(RegisterRequestDTO registerDTO) {
+        log.info("User registration attempt for email: {}", registerDTO.email());
+        
         if (userRepository.existsByEmail(registerDTO.email())) {
+            log.warn("User registration failed - email already exists: {}", registerDTO.email());
             throw new BusinessException("Email já cadastrado");
         }
 
@@ -81,17 +95,22 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         user = userRepository.save(user);
         
         String token = generateTokenForEmail(user.getEmail());
+        log.info("User registration successful for email: {}", user.getEmail());
         return new AuthResponseDTO(user.getDisplayName(), token, "Bearer");
     }
 
     @Override
     @Transactional
     public AuthResponseDTO registerONG(ONGRegisterDTO ongDTO) {
+        log.info("ONG registration attempt for email: {}", ongDTO.email());
+        
         if (ongRepository.existsByEmail(ongDTO.email())) {
+            log.warn("ONG registration failed - email already exists: {}", ongDTO.email());
             throw new BusinessException("Email já cadastrado");
         }
         
         if (ongRepository.existsByCnpj(ongDTO.cnpj())) {
+            log.warn("ONG registration failed - CNPJ already exists: {}", ongDTO.cnpj());
             throw new BusinessException("CNPJ já cadastrado");
         }
 
@@ -106,17 +125,22 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         ong = ongRepository.save(ong);
         
         String token = generateTokenForEmail(ong.getEmail());
+        log.info("ONG registration successful for email: {}", ong.getEmail());
         return new AuthResponseDTO(ong.getDisplayName(), token, "Bearer");
     }
 
     @Override
     @Transactional
     public AuthResponseDTO registerProtetor(ProtetorRegisterDTO protetorDTO) {
+        log.info("Protetor registration attempt for email: {}", protetorDTO.email());
+        
         if (protetorRepository.existsByEmail(protetorDTO.email())) {
+            log.warn("Protetor registration failed - email already exists: {}", protetorDTO.email());
             throw new BusinessException("Email já cadastrado");
         }
         
         if (protetorRepository.existsByCpf(protetorDTO.cpf())) {
+            log.warn("Protetor registration failed - CPF already exists: {}", protetorDTO.cpf());
             throw new BusinessException("CPF já cadastrado");
         }
 
@@ -131,6 +155,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         protetor = protetorRepository.save(protetor);
         
         String token = generateTokenForEmail(protetor.getEmail());
+        log.info("Protetor registration successful for email: {}", protetor.getEmail());
         return new AuthResponseDTO(protetor.getDisplayName(), token, "Bearer");
     }
 
