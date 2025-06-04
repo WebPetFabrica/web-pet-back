@@ -11,7 +11,9 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/webpet_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
-      JWT_SECRET: webpet-prod-secret-key-2024
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000}
     networks:
       - webpet-network
 

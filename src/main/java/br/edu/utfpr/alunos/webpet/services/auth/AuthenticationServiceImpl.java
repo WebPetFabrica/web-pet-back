@@ -18,6 +18,7 @@ import br.edu.utfpr.alunos.webpet.dto.auth.LoginRequestDTO;
 import br.edu.utfpr.alunos.webpet.dto.auth.ONGRegisterDTO;
 import br.edu.utfpr.alunos.webpet.dto.auth.ProtetorRegisterDTO;
 import br.edu.utfpr.alunos.webpet.dto.auth.RegisterRequestDTO;
+import br.edu.utfpr.alunos.webpet.infra.exception.AccountLockedException;
 import br.edu.utfpr.alunos.webpet.infra.exception.BusinessException;
 import br.edu.utfpr.alunos.webpet.infra.security.TokenService;
 import br.edu.utfpr.alunos.webpet.repositories.ONGRepository;
@@ -34,22 +35,33 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final TokenService tokenService;
     private final AuthenticationManager authenticationManager;
+    private final LoginAttemptService loginAttemptService;
 
     @Override
     public AuthResponseDTO login(LoginRequestDTO loginDTO) {
+        if (loginAttemptService.isBlocked(loginDTO.email())) {
+            throw new AccountLockedException("Conta temporariamente bloqueada devido a muitas tentativas de login");
+        }
+
         try {
             Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginDTO.email(), loginDTO.password())
             );
             
+            loginAttemptService.recordSuccessfulLogin(loginDTO.email());
+            
             UserDetails userDetails = (UserDetails) auth.getPrincipal();
             String token = tokenService.generateToken(userDetails);
-            
             String displayName = findDisplayNameByEmail(loginDTO.email());
             
             return new AuthResponseDTO(displayName, token, "Bearer");
         } catch (Exception e) {
-            throw new BusinessException("Credenciais inválidas");
+            loginAttemptService.recordFailedAttempt(loginDTO.email());
+            int remaining = loginAttemptService.getRemainingAttempts(loginDTO.email());
+            
+            throw new BusinessException(
+                String.format("Credenciais inválidas. %d tentativas restantes.", remaining)
+            );
         }
     }
 
