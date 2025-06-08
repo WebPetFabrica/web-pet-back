@@ -29,10 +29,10 @@ public interface PetRepository extends JpaRepository<Pet, String> {
     @Query("SELECT p FROM Pet p WHERE p.id = :id AND p.ativo = true")
     Optional<Pet> findByIdAndAtivo(@Param("id") String id);
     
-    @Query("SELECT p FROM Pet p WHERE p.responsavel.id = :responsavelId AND p.ativo = true")
+    @Query("SELECT p FROM Pet p WHERE p.responsavelId = :responsavelId AND p.ativo = true")
     List<Pet> findByResponsavelId(@Param("responsavelId") String responsavelId);
     
-    @Query("SELECT p FROM Pet p WHERE p.responsavel.id = :responsavelId AND p.ativo = true")
+    @Query("SELECT p FROM Pet p WHERE p.responsavelId = :responsavelId AND p.ativo = true")
     Page<Pet> findByResponsavelId(@Param("responsavelId") String responsavelId, Pageable pageable);
     
     @Query("""
@@ -42,8 +42,8 @@ public interface PetRepository extends JpaRepository<Pet, String> {
         AND (:especie IS NULL OR p.especie = :especie)
         AND (:genero IS NULL OR p.genero = :genero)
         AND (:porte IS NULL OR p.porte = :porte)
-        AND (:idadeMinima IS NULL OR FUNCTION('YEAR', CURRENT_DATE) - FUNCTION('YEAR', p.dataNascimento) >= :idadeMinima)
-        AND (:idadeMaxima IS NULL OR FUNCTION('YEAR', CURRENT_DATE) - FUNCTION('YEAR', p.dataNascimento) <= :idadeMaxima)
+        AND (:idadeMinima IS NULL OR YEAR(CURRENT_DATE) - YEAR(p.dataNascimento) >= :idadeMinima)
+        AND (:idadeMaxima IS NULL OR YEAR(CURRENT_DATE) - YEAR(p.dataNascimento) <= :idadeMaxima)
         AND (:raca IS NULL OR LOWER(p.raca) LIKE LOWER(CONCAT('%', :raca, '%')))
         ORDER BY p.criadoEm DESC
         """)
@@ -63,8 +63,8 @@ public interface PetRepository extends JpaRepository<Pet, String> {
         AND (:especie IS NULL OR p.especie = :especie)
         AND (:genero IS NULL OR p.genero = :genero)
         AND (:porte IS NULL OR p.porte = :porte)
-        AND (:idadeMinima IS NULL OR FUNCTION('YEAR', CURRENT_DATE) - FUNCTION('YEAR', p.dataNascimento) >= :idadeMinima)
-        AND (:idadeMaxima IS NULL OR FUNCTION('YEAR', CURRENT_DATE) - FUNCTION('YEAR', p.dataNascimento) <= :idadeMaxima)
+        AND (:idadeMinima IS NULL OR YEAR(CURRENT_DATE) - YEAR(p.dataNascimento) >= :idadeMinima)
+        AND (:idadeMaxima IS NULL OR YEAR(CURRENT_DATE) - YEAR(p.dataNascimento) <= :idadeMaxima)
         AND (:raca IS NULL OR LOWER(p.raca) LIKE LOWER(CONCAT('%', :raca, '%')))
         """)
     Long countAvailablePetsWithFilters(

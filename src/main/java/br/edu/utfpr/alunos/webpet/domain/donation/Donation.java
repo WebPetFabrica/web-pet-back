@@ -5,17 +5,16 @@ import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 
-import br.edu.utfpr.alunos.webpet.domain.user.BaseUser;
+// Remove the import for BaseUser
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
+// Removed FetchType import
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+// Removed unused JPA imports
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -58,9 +57,8 @@ public class Donation {
     @Column
     private String transactionId;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "beneficiario_id", nullable = false)
-    private BaseUser beneficiario;
+    @Column(name = "beneficiario_id", nullable = false)
+    private String beneficiarioId;
     
     @CreationTimestamp
     private LocalDateTime criadoEm;
@@ -69,14 +67,14 @@ public class Donation {
     
     private Donation(BigDecimal valor, TipoDoacao tipoDoacao, String mensagem, 
                      String nomeDoador, String emailDoador, String telefoneDoador, 
-                     BaseUser beneficiario) {
+                     String beneficiarioId) {
         this.valor = valor;
         this.tipoDoacao = tipoDoacao;
         this.mensagem = mensagem;
         this.nomeDoador = nomeDoador;
         this.emailDoador = emailDoador;
         this.telefoneDoador = telefoneDoador;
-        this.beneficiario = beneficiario;
+        this.beneficiarioId = beneficiarioId;
         this.statusDoacao = StatusDoacao.PENDENTE;
     }
     
@@ -107,7 +105,7 @@ public class Donation {
         private String nomeDoador;
         private String emailDoador;
         private String telefoneDoador;
-        private BaseUser beneficiario;
+        private String beneficiarioId;
         
         public DonationBuilder valor(BigDecimal valor) {
             this.valor = valor;
@@ -139,14 +137,14 @@ public class Donation {
             return this;
         }
         
-        public DonationBuilder beneficiario(BaseUser beneficiario) {
-            this.beneficiario = beneficiario;
+        public DonationBuilder beneficiarioId(String beneficiarioId) {
+            this.beneficiarioId = beneficiarioId;
             return this;
         }
         
         public Donation build() {
             return new Donation(valor, tipoDoacao, mensagem, nomeDoador, 
-                              emailDoador, telefoneDoador, beneficiario);
+                              emailDoador, telefoneDoador, beneficiarioId);
         }
     }
 }

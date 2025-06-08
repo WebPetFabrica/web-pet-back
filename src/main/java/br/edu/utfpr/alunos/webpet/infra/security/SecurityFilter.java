@@ -9,6 +9,7 @@ import org.slf4j.MDC;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -22,10 +23,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+// Removed RequiredArgsConstructor import
 
 @Component
-@RequiredArgsConstructor
 public class SecurityFilter extends OncePerRequestFilter {
     
     private static final Logger log = LoggerFactory.getLogger(SecurityFilter.class);
@@ -35,6 +35,18 @@ public class SecurityFilter extends OncePerRequestFilter {
     private final ONGRepository ongRepository;
     private final ProtetorRepository protetorRepository;
     private final AuditLogger auditLogger;
+    
+    public SecurityFilter(TokenService tokenService, 
+                         UserRepository userRepository,
+                         @Qualifier("ONGRepository") ONGRepository ongRepository,
+                         ProtetorRepository protetorRepository,
+                         AuditLogger auditLogger) {
+        this.tokenService = tokenService;
+        this.userRepository = userRepository;
+        this.ongRepository = ongRepository;
+        this.protetorRepository = protetorRepository;
+        this.auditLogger = auditLogger;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) 

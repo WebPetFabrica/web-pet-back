@@ -34,4 +34,14 @@ public record ErrorResponse(
                 .fieldErrors(fieldErrors)
                 .build();
     }
+    
+    public ErrorResponse withAdditionalInfo(String key, String value) {
+        return ErrorResponse.builder()
+                .code(this.code)
+                .message(this.message)
+                .path(this.path)
+                .timestamp(this.timestamp)
+                .fieldErrors(this.fieldErrors)
+                .build();
+    }
 }

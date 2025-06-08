@@ -6,8 +6,8 @@
               value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{correlationId:-}] %logger{36} - %msg%n"/>
     
     <!-- JSON Pattern for Production -->
-    <property name="JSON_LOG_PATTERN" 
-              value='{"timestamp":"%d{yyyy-MM-dd'\''T'\''HH:mm:ss.SSSX}","level":"%level","thread":"%thread","correlationId":"%X{correlationId:-}","userId":"%X{userId:-}","clientIp":"%X{clientIp:-}","requestUri":"%X{requestUri:-}","httpMethod":"%X{httpMethod:-}","logger":"%logger","message":"%msg","exception":"%ex"}%n'/>
+    <property name="JSON_LOG_PATTERN"
+              value='{"timestamp":"%d{yyyy-MM-dd HH:mm:ss.SSSX}","level":"%level","thread":"%thread","correlationId":"%X{correlationId:-}","userId":"%X{userId:-}","clientIp":"%X{clientIp:-}","requestUri":"%X{requestUri:-}","httpMethod":"%X{httpMethod:-}","logger":"%logger","message":"%msg","exception":"%ex"}%n' />
 
     <!-- Development Profile -->
     <springProfile name="dev,local,test">

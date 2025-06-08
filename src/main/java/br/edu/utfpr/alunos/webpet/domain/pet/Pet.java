@@ -6,17 +6,16 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import br.edu.utfpr.alunos.webpet.domain.user.BaseUser;
+// Removed BaseUser import
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
+// Removed FetchType import
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+// Removed unused JPA imports
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -67,9 +66,8 @@ public class Pet {
     @Column(nullable = false)
     private boolean ativo = true;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "responsavel_id", nullable = false)
-    private BaseUser responsavel;
+    @Column(name = "responsavel_id", nullable = false)
+    private String responsavelId;
     
     @CreationTimestamp
     private LocalDateTime criadoEm;
@@ -78,7 +76,7 @@ public class Pet {
     private LocalDateTime atualizadoEm;
     
     private Pet(String nome, Especie especie, String raca, Genero genero, Porte porte,
-                LocalDate dataNascimento, String descricao, String fotoUrl, BaseUser responsavel) {
+                LocalDate dataNascimento, String descricao, String fotoUrl, String responsavelId) {
         this.nome = nome;
         this.especie = especie;
         this.raca = raca;
@@ -87,7 +85,7 @@ public class Pet {
         this.dataNascimento = dataNascimento;
         this.descricao = descricao;
         this.fotoUrl = fotoUrl;
-        this.responsavel = responsavel;
+        this.responsavelId = responsavelId;
         this.statusAdocao = StatusAdocao.DISPONIVEL;
         this.ativo = true;
     }
@@ -129,7 +127,7 @@ public class Pet {
         private LocalDate dataNascimento;
         private String descricao;
         private String fotoUrl;
-        private BaseUser responsavel;
+        private String responsavelId;
         
         public PetBuilder nome(String nome) {
             this.nome = nome;
@@ -171,13 +169,13 @@ public class Pet {
             return this;
         }
         
-        public PetBuilder responsavel(BaseUser responsavel) {
-            this.responsavel = responsavel;
+        public PetBuilder responsavelId(String responsavelId) {
+            this.responsavelId = responsavelId;
             return this;
         }
         
         public Pet build() {
-            return new Pet(nome, especie, raca, genero, porte, dataNascimento, descricao, fotoUrl, responsavel);
+            return new Pet(nome, especie, raca, genero, porte, dataNascimento, descricao, fotoUrl, responsavelId);
         }
     }
 }

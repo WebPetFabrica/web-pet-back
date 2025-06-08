@@ -17,18 +17,26 @@ import br.edu.utfpr.alunos.webpet.infra.exception.ErrorCode;
 import br.edu.utfpr.alunos.webpet.mapper.UserMapper;
 import br.edu.utfpr.alunos.webpet.repositories.BaseUserRepository;
 import br.edu.utfpr.alunos.webpet.repositories.ONGRepository;
+import org.springframework.beans.factory.annotation.Qualifier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Transactional
-@RequiredArgsConstructor
 @Slf4j
 public class ONGServiceImpl implements ONGService {
     
     private final ONGRepository ongRepository;
     private final BaseUserRepository baseUserRepository;
     private final UserMapper userMapper;
+    
+    public ONGServiceImpl(@Qualifier("ONGRepository") ONGRepository ongRepository,
+                         @Qualifier("userRepository") BaseUserRepository baseUserRepository,
+                         UserMapper userMapper) {
+        this.ongRepository = ongRepository;
+        this.baseUserRepository = baseUserRepository;
+        this.userMapper = userMapper;
+    }
     
     @Override
     @Transactional(readOnly = true)

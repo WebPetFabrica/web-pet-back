@@ -45,3 +45,52 @@ Thumbs.db
 *.bak
 *.swp
 *~.nib
+
+# Claude AI generated files and folders
+.claude/
+claude_*
+*.claude
+
+# Application startup and testing logs
+app-*.log
+final-*.log
+startup-*.log
+success-*.log
+working-*.log
+application.log
+nohup.out
+
+# Test artifacts
+*.disabled
+
+# Test directories (disabled)
+src/test.disabled/
+src/test.bak/
+
+# Deployment and build artifacts
+*.pid
+.java-version
+
+# H2 Database files (development)
+*.h2.db
+*.trace.db
+
+# Cache directories
+.cache/
+cache/
+
+# Documentation build artifacts
+docs/build/
+docs/.vuepress/dist/
+
+# Node.js (if using frontend tools)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor backup files
+*~
+.#*
+\#*#
+.*.orig

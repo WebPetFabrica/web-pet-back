@@ -28,19 +28,19 @@ public interface DonationRepository extends JpaRepository<Donation, String> {
     
     List<Donation> findByTipoDoacao(TipoDoacao tipoDoacao);
     
-    @Query("SELECT d FROM Donation d WHERE d.beneficiario.id = :beneficiarioId AND d.statusDoacao = :status")
+    @Query("SELECT d FROM Donation d WHERE d.beneficiarioId = :beneficiarioId AND d.statusDoacao = :status")
     List<Donation> findByBeneficiarioIdAndStatus(@Param("beneficiarioId") String beneficiarioId, 
                                                  @Param("status") StatusDoacao status);
     
-    @Query("SELECT d FROM Donation d WHERE d.beneficiario.id = :beneficiarioId AND d.statusDoacao = :status")
+    @Query("SELECT d FROM Donation d WHERE d.beneficiarioId = :beneficiarioId AND d.statusDoacao = :status")
     Page<Donation> findByBeneficiarioIdAndStatus(@Param("beneficiarioId") String beneficiarioId, 
                                                  @Param("status") StatusDoacao status, 
                                                  Pageable pageable);
     
-    @Query("SELECT SUM(d.valor) FROM Donation d WHERE d.beneficiario.id = :beneficiarioId AND d.statusDoacao = 'PROCESSADA'")
+    @Query("SELECT SUM(d.valor) FROM Donation d WHERE d.beneficiarioId = :beneficiarioId AND d.statusDoacao = 'PROCESSADA'")
     BigDecimal getTotalDonationsByBeneficiario(@Param("beneficiarioId") String beneficiarioId);
     
-    @Query("SELECT COUNT(d) FROM Donation d WHERE d.beneficiario.id = :beneficiarioId AND d.statusDoacao = 'PROCESSADA'")
+    @Query("SELECT COUNT(d) FROM Donation d WHERE d.beneficiarioId = :beneficiarioId AND d.statusDoacao = 'PROCESSADA'")
     Long getCountDonationsByBeneficiario(@Param("beneficiarioId") String beneficiarioId);
     
     @Query("""
