@@ -1,10 +1,5 @@
 package br.edu.utfpr.alunos.webpet.infra.exception;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-@Getter
-@RequiredArgsConstructor
 public enum ErrorCode {
     // Authentication & Authorization
     AUTH_INVALID_CREDENTIALS("AUTH001", "Credenciais inválidas"),
@@ -46,10 +41,40 @@ public enum ErrorCode {
     SYSTEM_EXTERNAL_SERVICE_ERROR("SYS003", "Serviço externo indisponível"),
     
     // Rate Limiting
-    RATE_LIMIT_EXCEEDED("RATE001", "Muitas tentativas. Tente novamente mais tarde");
+    RATE_LIMIT_EXCEEDED("RATE001", "Muitas tentativas. Tente novamente mais tarde"),
+    
+    // Pet Management
+    PET_NOT_FOUND("PET001", "Pet não encontrado"),
+    PET_ALREADY_ADOPTED("PET002", "Pet já foi adotado"),
+    PET_NOT_AVAILABLE("PET003", "Pet não está disponível para adoção"),
+    
+    // Donation Management
+    DONATION_NOT_FOUND("DON001", "Doação não encontrada"),
+    DONATION_INVALID_AMOUNT("DON002", "Valor de doação inválido"),
+    DONATION_ALREADY_PROCESSED("DON003", "Doação já foi processada"),
+    
+    // Authorization
+    ACCESS_DENIED("AUTH008", "Acesso negado"),
+    AUTHENTICATION_REQUIRED("AUTH009", "Autenticação obrigatória"),
+    
+    // User Status
+    USER_INACTIVE("USER005", "Usuário inativo");
 
     private final String code;
     private final String message;
+    
+    ErrorCode(String code, String message) {
+        this.code = code;
+        this.message = message;
+    }
+    
+    public String getCode() {
+        return code;
+    }
+    
+    public String getMessage() {
+        return message;
+    }
     
     /**
      * Returns a formatted error message with the error code.

@@ -14,16 +14,12 @@ public interface UserMapper {
     
     UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
     
-    @Mapping(target = "password", ignore = true)
     UserResponseDTO toResponseDTO(BaseUser user);
     
-    @Mapping(target = "password", ignore = true)
     UserDetailedResponseDTO toDetailedResponseDTO(BaseUser user);
     
-    @Mapping(target = "password", ignore = true)
     ONGResponseDTO toONGResponseDTO(ONG ong);
     
-    @Mapping(target = "password", ignore = true)
     ProtetorResponseDTO toProtetorResponseDTO(Protetor protetor);
     
     UserBasicResponseDTO toBasicResponseDTO(BaseUser user);

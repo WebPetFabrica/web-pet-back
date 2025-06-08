@@ -15,7 +15,6 @@ import br.edu.utfpr.alunos.webpet.infra.security.TokenService;
 import br.edu.utfpr.alunos.webpet.repositories.ONGRepository;
 import br.edu.utfpr.alunos.webpet.repositories.ProtetorRepository;
 import br.edu.utfpr.alunos.webpet.repositories.UserRepository;
-import br.edu.utfpr.alunos.webpet.services.validation.EmailConfirmationService;
 import br.edu.utfpr.alunos.webpet.services.validation.PasswordHistoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -70,7 +69,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final LoginAttemptService loginAttemptService;
     private final ExceptionLogger exceptionLogger;
     private final PasswordHistoryService passwordHistoryService;
-    private final EmailConfirmationService emailConfirmationService;
 
     /**
      * Authenticates a user using email and password credentials.
