@@ -21,7 +21,9 @@ import br.edu.utfpr.alunos.webpet.dto.pet.PetUpdateRequestDTO;
 import br.edu.utfpr.alunos.webpet.infra.exception.BusinessException;
 import br.edu.utfpr.alunos.webpet.infra.exception.ErrorCode;
 import br.edu.utfpr.alunos.webpet.mapper.PetMapper;
-import br.edu.utfpr.alunos.webpet.repositories.BaseUserRepository;
+import br.edu.utfpr.alunos.webpet.repositories.UserRepository;
+import br.edu.utfpr.alunos.webpet.repositories.ONGRepository;
+import br.edu.utfpr.alunos.webpet.repositories.ProtetorRepository;
 import br.edu.utfpr.alunos.webpet.repositories.PetRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,14 +35,16 @@ import lombok.extern.slf4j.Slf4j;
 public class PetServiceImpl implements PetService {
     
     private final PetRepository petRepository;
-    private final BaseUserRepository baseUserRepository;
+    private final UserRepository userRepository;
+    private final ONGRepository ongRepository;
+    private final ProtetorRepository protetorRepository;
     private final PetMapper petMapper;
     
     @Override
     public PetResponseDTO createPet(PetCreateRequestDTO createRequest, String responsavelId) {
         log.info("Creating pet for responsavel: {}", responsavelId);
         
-        BaseUser responsavel = baseUserRepository.findById(responsavelId)
+        BaseUser responsavel = findUserById(responsavelId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
         
         if (!responsavel.isActive()) {
@@ -56,7 +60,7 @@ public class PetServiceImpl implements PetService {
                 .dataNascimento(createRequest.dataNascimento())
                 .descricao(createRequest.descricao())
                 .fotoUrl(createRequest.fotoUrl())
-                .responsavel(responsavel)
+                .responsavelId(responsavel.getId())
                 .build();
         
         Pet savedPet = petRepository.save(pet);
@@ -72,7 +76,7 @@ public class PetServiceImpl implements PetService {
         Pet pet = petRepository.findByIdAndAtivo(petId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PET_NOT_FOUND));
         
-        if (!pet.getResponsavel().getId().equals(responsavelId)) {
+        if (!pet.getResponsavelId().equals(responsavelId)) {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
         
@@ -114,7 +118,7 @@ public class PetServiceImpl implements PetService {
         Pet pet = petRepository.findByIdAndAtivo(petId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PET_NOT_FOUND));
         
-        if (!pet.getResponsavel().getId().equals(responsavelId)) {
+        if (!pet.getResponsavelId().equals(responsavelId)) {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
         
@@ -230,10 +234,19 @@ public class PetServiceImpl implements PetService {
         Pet pet = petRepository.findByIdAndAtivo(petId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PET_NOT_FOUND));
         
-        if (!pet.getResponsavel().getId().equals(responsavelId)) {
+        if (!pet.getResponsavelId().equals(responsavelId)) {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
         
         return pet;
+    }
+    
+    private Optional<BaseUser> findUserById(String id) {
+        return userRepository.findById(id)
+                .map(BaseUser.class::cast)
+                .or(() -> ongRepository.findById(id)
+                        .map(BaseUser.class::cast))
+                .or(() -> protetorRepository.findById(id)
+                        .map(BaseUser.class::cast));
     }
 }

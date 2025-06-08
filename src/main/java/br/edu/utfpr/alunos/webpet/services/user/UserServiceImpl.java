@@ -133,6 +133,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
     public UserDetailedResponseDTO getUserDetailedProfile(String email) {
         String correlationId = MDC.get("correlationId");
         log.info("Getting detailed user profile for: {} [correlationId: {}]", email, correlationId);

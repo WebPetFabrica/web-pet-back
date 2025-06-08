@@ -7,8 +7,6 @@ import br.edu.utfpr.alunos.webpet.domain.pet.Especie;
 import br.edu.utfpr.alunos.webpet.domain.pet.Genero;
 import br.edu.utfpr.alunos.webpet.domain.pet.Porte;
 import br.edu.utfpr.alunos.webpet.domain.pet.StatusAdocao;
-import br.edu.utfpr.alunos.webpet.dto.user.UserBasicResponseDTO;
-
 public record PetResponseDTO(
     String id,
     String nome,
@@ -21,7 +19,7 @@ public record PetResponseDTO(
     String descricao,
     String fotoUrl,
     StatusAdocao statusAdocao,
-    UserBasicResponseDTO responsavel,
+    String responsavelId,
     LocalDateTime criadoEm,
     LocalDateTime atualizadoEm
 ) {}

@@ -9,6 +9,6 @@ import br.edu.utfpr.alunos.webpet.dto.donation.DonationResponseDTO;
 @Mapper(componentModel = "spring", uses = {UserMapper.class})
 public interface DonationMapper {
     
-    @Mapping(source = "beneficiario", target = "beneficiario")
+    @Mapping(source = "beneficiarioId", target = "beneficiarioId")
     DonationResponseDTO toResponseDTO(Donation donation);
 }

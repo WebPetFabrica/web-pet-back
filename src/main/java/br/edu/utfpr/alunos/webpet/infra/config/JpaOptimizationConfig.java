@@ -29,10 +29,8 @@ public class JpaOptimizationConfig implements HibernatePropertiesCustomizer {
         // Statistics for monitoring (disable in production)
         hibernateProperties.put("hibernate.generate_statistics", false);
         
-        // Second level cache
-        hibernateProperties.put("hibernate.cache.use_second_level_cache", true);
-        hibernateProperties.put("hibernate.cache.use_query_cache", true);
-        hibernateProperties.put("hibernate.cache.region.factory_class", 
-            "org.hibernate.cache.jcache.JCacheRegionFactory");
+        // Second level cache (disabled for compatibility)
+        hibernateProperties.put("hibernate.cache.use_second_level_cache", false);
+        hibernateProperties.put("hibernate.cache.use_query_cache", false);
     }
 }

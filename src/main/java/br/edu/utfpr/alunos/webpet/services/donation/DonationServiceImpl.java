@@ -19,7 +19,9 @@ import br.edu.utfpr.alunos.webpet.dto.donation.DonationResponseDTO;
 import br.edu.utfpr.alunos.webpet.infra.exception.BusinessException;
 import br.edu.utfpr.alunos.webpet.infra.exception.ErrorCode;
 import br.edu.utfpr.alunos.webpet.mapper.DonationMapper;
-import br.edu.utfpr.alunos.webpet.repositories.BaseUserRepository;
+import br.edu.utfpr.alunos.webpet.repositories.UserRepository;
+import br.edu.utfpr.alunos.webpet.repositories.ONGRepository;
+import br.edu.utfpr.alunos.webpet.repositories.ProtetorRepository;
 import br.edu.utfpr.alunos.webpet.repositories.DonationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +33,9 @@ import lombok.extern.slf4j.Slf4j;
 public class DonationServiceImpl implements DonationService {
     
     private final DonationRepository donationRepository;
-    private final BaseUserRepository baseUserRepository;
+    private final UserRepository userRepository;
+    private final ONGRepository ongRepository;
+    private final ProtetorRepository protetorRepository;
     private final DonationMapper donationMapper;
     
     @Override
@@ -42,7 +46,7 @@ public class DonationServiceImpl implements DonationService {
             throw new BusinessException(ErrorCode.DONATION_INVALID_AMOUNT);
         }
         
-        BaseUser beneficiario = baseUserRepository.findByIdAndActiveTrue(createRequest.beneficiarioId())
+        BaseUser beneficiario = findUserById(createRequest.beneficiarioId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
         
         Donation donation = Donation.builder()
@@ -52,7 +56,7 @@ public class DonationServiceImpl implements DonationService {
                 .nomeDoador(createRequest.nomeDoador())
                 .emailDoador(createRequest.emailDoador())
                 .telefoneDoador(createRequest.telefoneDoador())
-                .beneficiario(beneficiario)
+                .beneficiarioId(beneficiario.getId())
                 .build();
         
         Donation savedDonation = donationRepository.save(donation);
@@ -163,5 +167,14 @@ public class DonationServiceImpl implements DonationService {
         donation.cancelar();
         donationRepository.save(donation);
         log.info("Donation {} cancelled successfully", donationId);
+    }
+    
+    private Optional<BaseUser> findUserById(String id) {
+        return userRepository.findById(id)
+                .map(BaseUser.class::cast)
+                .or(() -> ongRepository.findById(id)
+                        .map(BaseUser.class::cast))
+                .or(() -> protetorRepository.findById(id)
+                        .map(BaseUser.class::cast));
     }
 }

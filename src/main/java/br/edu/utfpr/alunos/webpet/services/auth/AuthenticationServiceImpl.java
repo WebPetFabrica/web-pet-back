@@ -184,9 +184,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             log.debug("Password saved to history for user: {} [correlationId: {}]", 
                 user.getEmail(), correlationId);
             
-            // Send email confirmation for account verification
-            emailConfirmationService.sendConfirmationEmail(user);
-            log.debug("Confirmation email sent for user: {} [correlationId: {}]", 
+            // TODO: Send email confirmation for account verification
+            // emailConfirmationService.sendConfirmationEmail(user);
+            log.debug("Email confirmation will be implemented later for user: {} [correlationId: {}]", 
                 user.getEmail(), correlationId);
             
             String token = generateTokenForEmail(user.getEmail());
@@ -261,9 +261,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             log.debug("Password saved to history for ONG: {} [correlationId: {}]", 
                 ong.getEmail(), correlationId);
             
-            // Send email confirmation for account verification
-            emailConfirmationService.sendConfirmationEmail(ong);
-            log.debug("Confirmation email sent for ONG: {} [correlationId: {}]", 
+            // TODO: Send email confirmation for account verification
+            // emailConfirmationService.sendConfirmationEmail(ong);
+            log.debug("Email confirmation will be implemented later for ONG: {} [correlationId: {}]", 
                 ong.getEmail(), correlationId);
             
             String token = generateTokenForEmail(ong.getEmail());
@@ -338,9 +338,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             log.debug("Password saved to history for Protetor: {} [correlationId: {}]", 
                 protetor.getEmail(), correlationId);
             
-            // Send email confirmation for account verification
-            emailConfirmationService.sendConfirmationEmail(protetor);
-            log.debug("Confirmation email sent for Protetor: {} [correlationId: {}]", 
+            // TODO: Send email confirmation for account verification
+            // emailConfirmationService.sendConfirmationEmail(protetor);
+            log.debug("Email confirmation will be implemented later for Protetor: {} [correlationId: {}]", 
                 protetor.getEmail(), correlationId);
             
             String token = generateTokenForEmail(protetor.getEmail());

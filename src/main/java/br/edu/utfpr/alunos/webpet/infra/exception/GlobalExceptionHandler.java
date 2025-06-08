@@ -96,7 +96,7 @@ public class GlobalExceptionHandler {
         ErrorResponse error = ErrorResponse.of(
             ErrorCode.VALIDATION_REQUIRED_FIELD, 
             request.getRequestURI(),
-            Map.of("business", e.getMessage())
+            Map.of("business", List.of(e.getMessage()))
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }

@@ -5,8 +5,6 @@ import java.time.LocalDateTime;
 
 import br.edu.utfpr.alunos.webpet.domain.donation.StatusDoacao;
 import br.edu.utfpr.alunos.webpet.domain.donation.TipoDoacao;
-import br.edu.utfpr.alunos.webpet.dto.user.UserBasicResponseDTO;
-
 public record DonationResponseDTO(
     String id,
     BigDecimal valor,
@@ -17,7 +15,7 @@ public record DonationResponseDTO(
     String telefoneDoador,
     StatusDoacao statusDoacao,
     String transactionId,
-    UserBasicResponseDTO beneficiario,
+    String beneficiarioId,
     LocalDateTime criadoEm,
     LocalDateTime processadoEm
 ) {}

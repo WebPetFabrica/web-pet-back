@@ -9,6 +9,6 @@ import br.edu.utfpr.alunos.webpet.dto.pet.PetResponseDTO;
 @Mapper(componentModel = "spring", uses = {UserMapper.class})
 public interface PetMapper {
     
-    @Mapping(source = "responsavel", target = "responsavel")
+    @Mapping(source = "responsavelId", target = "responsavelId")
     PetResponseDTO toResponseDTO(Pet pet);
 }
