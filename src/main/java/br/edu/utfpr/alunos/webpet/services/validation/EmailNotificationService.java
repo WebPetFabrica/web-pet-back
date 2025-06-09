@@ -24,8 +24,6 @@ import java.time.format.DateTimeFormatter;
  *   <li>Welcome emails for new users</li>
  * </ul>
  * 
- * @author WebPet Team
- * @since 1.0.0
  */
 @Slf4j
 @Service
@@ -68,7 +66,6 @@ public class EmailNotificationService {
             // Log the email content for development
             logEmailContent(email, displayName, confirmationUrl, expiryTime, correlationId);
             
-            // TODO: In production, integrate with email service provider
             sendActualEmail(email, displayName, confirmationUrl, expiryTime);
             
             log.info("Email confirmation sent successfully to: {} [correlationId: {}]", 
@@ -116,7 +113,6 @@ public class EmailNotificationService {
                 [correlationId: {}]
                 """, displayName, email, displayName, timestamp, correlationId);
             
-            // TODO: Send actual email in production
             
         } catch (Exception e) {
             log.error("Failed to send password change notification to: {} [correlationId: {}]", 
@@ -157,7 +153,6 @@ public class EmailNotificationService {
                 [correlationId: {}]
                 """, displayName, email, welcomeMessage, frontendUrl, correlationId);
             
-            // TODO: Send actual email in production
             
         } catch (Exception e) {
             log.error("Failed to send welcome email to: {} [correlationId: {}]", 
@@ -206,7 +201,6 @@ public class EmailNotificationService {
                 [correlationId: {}]
                 """, displayName, email, displayName, alertType, details, timestamp, correlationId);
             
-            // TODO: Send actual email in production
             
         } catch (Exception e) {
             log.error("Failed to send security alert to: {} [correlationId: {}]", 
@@ -259,7 +253,6 @@ public class EmailNotificationService {
     
     /**
      * Placeholder for actual email sending in production.
-     * TODO: Integrate with email service provider (SendGrid, AWS SES, etc.)
      */
     private void sendActualEmail(String email, String displayName, String confirmationUrl, 
                                 LocalDateTime expiryTime) {
@@ -269,7 +262,6 @@ public class EmailNotificationService {
         // 3. Handle delivery failures
         // 4. Track email metrics
         
-        log.debug("TODO: Send actual email to {} with confirmation URL: {}", email, confirmationUrl);
     }
     
     /**

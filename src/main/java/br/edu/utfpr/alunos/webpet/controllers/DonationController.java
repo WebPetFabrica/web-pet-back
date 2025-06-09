@@ -1,15 +1,17 @@
 package br.edu.utfpr.alunos.webpet.controllers;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.time.LocalDateTime;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,8 +19,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.edu.utfpr.alunos.webpet.domain.donation.StatusDoacao;
-import br.edu.utfpr.alunos.webpet.domain.donation.TipoDoacao;
 import br.edu.utfpr.alunos.webpet.dto.donation.DonationCreateRequestDTO;
 import br.edu.utfpr.alunos.webpet.dto.donation.DonationResponseDTO;
 import br.edu.utfpr.alunos.webpet.services.donation.DonationService;
@@ -26,29 +26,42 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
+/**
+ * REST Controller for Donation management operations.
+ * 
+ * <p>Provides donation creation, querying, and analytics endpoints.
+ * Supports pagination and filtering for efficient data retrieval.
+ * 
+ */
 @RestController
 @RequestMapping("/doacoes")
-@RequiredArgsConstructor
-@Tag(name = "Doações", description = "Endpoints para gerenciamento de doações")
+@Tag(name = "Donations", description = "Endpoints para gerenciamento de doações")
 public class DonationController {
     
     private final DonationService donationService;
+    
+    public DonationController(DonationService donationService) {
+        this.donationService = donationService;
+    }
     
     @PostMapping
     @Operation(summary = "Criar nova doação", description = "Cria uma nova doação no sistema")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Doação criada com sucesso"),
         @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+        @ApiResponse(responseCode = "401", description = "Não autorizado"),
         @ApiResponse(responseCode = "404", description = "Beneficiário não encontrado")
     })
+    @SecurityRequirement(name = "bearer-key")
     public ResponseEntity<DonationResponseDTO> createDonation(
-            @Valid @RequestBody DonationCreateRequestDTO createRequest) {
+            @Valid @RequestBody DonationCreateRequestDTO createRequest,
+            @AuthenticationPrincipal UserDetails userDetails) {
         
-        DonationResponseDTO response = donationService.createDonation(createRequest);
+        DonationResponseDTO response = donationService.createDonation(createRequest, userDetails.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     
@@ -71,23 +84,24 @@ public class DonationController {
     })
     public ResponseEntity<Page<DonationResponseDTO>> listDonations(
             @Parameter(description = "Filtrar por beneficiário") @RequestParam(required = false) String beneficiarioId,
-            @Parameter(description = "Filtrar por status") @RequestParam(required = false) StatusDoacao status,
-            @Parameter(description = "Termo de busca") @RequestParam(required = false) String search,
+            @Parameter(description = "Filtrar por doador") @RequestParam(required = false) String doadorId,
+            @Parameter(description = "Data de início (formato: yyyy-MM-dd'T'HH:mm:ss)") 
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @Parameter(description = "Data de fim (formato: yyyy-MM-dd'T'HH:mm:ss)") 
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
             @PageableDefault(size = 20) Pageable pageable) {
         
         Page<DonationResponseDTO> donations;
         
-        if (search != null && !search.trim().isEmpty()) {
-            donations = donationService.searchDonations(search.trim(), pageable);
-        } else if (beneficiarioId != null && status != null) {
-            donations = donationService.findByBeneficiarioAndStatus(beneficiarioId, status, pageable);
-        } else if (beneficiarioId != null) {
+        if (beneficiarioId != null) {
             donations = donationService.findByBeneficiario(beneficiarioId, pageable);
-        } else if (status != null) {
-            donations = donationService.findByStatus(status, pageable);
+        } else if (doadorId != null) {
+            donations = donationService.findByDoador(doadorId, pageable);
+        } else if (startDate != null && endDate != null) {
+            donations = donationService.findByDateRange(startDate, endDate, pageable);
         } else {
-            // Return all donations - you might want to restrict this in production
-            donations = donationService.findByStatus(StatusDoacao.PROCESSADA, pageable);
+            // Return recent donations (last 30 days) for performance
+            donations = donationService.getRecentDonations(30, pageable);
         }
         
         return ResponseEntity.ok(donations);
@@ -100,17 +114,9 @@ public class DonationController {
     })
     public ResponseEntity<Page<DonationResponseDTO>> getDonationsByBeneficiario(
             @PathVariable String beneficiarioId,
-            @Parameter(description = "Filtrar por status") @RequestParam(required = false) StatusDoacao status,
             @PageableDefault(size = 20) Pageable pageable) {
         
-        Page<DonationResponseDTO> donations;
-        
-        if (status != null) {
-            donations = donationService.findByBeneficiarioAndStatus(beneficiarioId, status, pageable);
-        } else {
-            donations = donationService.findByBeneficiario(beneficiarioId, pageable);
-        }
-        
+        Page<DonationResponseDTO> donations = donationService.findByBeneficiario(beneficiarioId, pageable);
         return ResponseEntity.ok(donations);
     }
     
@@ -120,67 +126,51 @@ public class DonationController {
         @ApiResponse(responseCode = "200", description = "Estatísticas retornadas com sucesso")
     })
     public ResponseEntity<DonationStatsResponse> getDonationStats(@PathVariable String beneficiarioId) {
-        BigDecimal totalValue = donationService.getTotalDonationsByBeneficiario(beneficiarioId);
-        Long totalCount = donationService.getCountDonationsByBeneficiario(beneficiarioId);
+        BigDecimal totalValue = donationService.getTotalReceivedByBeneficiario(beneficiarioId);
+        Long totalCount = donationService.getCountReceivedByBeneficiario(beneficiarioId);
         
         DonationStatsResponse stats = new DonationStatsResponse(totalValue, totalCount);
         return ResponseEntity.ok(stats);
     }
     
-    @PatchMapping("/{id}/processar")
-    @Operation(summary = "Processar doação", description = "Marca uma doação como processada")
+    @GetMapping("/doador/{doadorId}")
+    @Operation(summary = "Listar doações por doador", description = "Lista todas as doações feitas por um doador específico")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Doação processada com sucesso"),
-        @ApiResponse(responseCode = "404", description = "Doação não encontrada"),
-        @ApiResponse(responseCode = "409", description = "Doação já foi processada")
+        @ApiResponse(responseCode = "200", description = "Lista de doações do doador")
     })
-    public ResponseEntity<Void> processarDoacao(
-            @PathVariable String id,
-            @RequestParam String transactionId) {
+    public ResponseEntity<Page<DonationResponseDTO>> getDonationsByDoador(
+            @PathVariable String doadorId,
+            @PageableDefault(size = 20) Pageable pageable) {
         
-        donationService.processarDoacao(id, transactionId);
-        return ResponseEntity.ok().build();
+        Page<DonationResponseDTO> donations = donationService.findByDoador(doadorId, pageable);
+        return ResponseEntity.ok(donations);
     }
     
-    @PatchMapping("/{id}/falha")
-    @Operation(summary = "Marcar como falha", description = "Marca uma doação como falha no processamento")
+    @GetMapping("/doador/{doadorId}/stats")
+    @Operation(summary = "Estatísticas de doações do doador", description = "Retorna estatísticas de doações feitas por um doador")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Doação marcada como falha"),
-        @ApiResponse(responseCode = "404", description = "Doação não encontrada")
+        @ApiResponse(responseCode = "200", description = "Estatísticas retornadas com sucesso")
     })
-    public ResponseEntity<Void> marcarComoFalha(@PathVariable String id) {
-        donationService.marcarComoFalha(id);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<DonationStatsResponse> getDonorStats(@PathVariable String doadorId) {
+        BigDecimal totalValue = donationService.getTotalDonatedByDoador(doadorId);
+        Long totalCount = donationService.getCountMadeByDoador(doadorId);
+        
+        DonationStatsResponse stats = new DonationStatsResponse(totalValue, totalCount);
+        return ResponseEntity.ok(stats);
     }
     
-    @PatchMapping("/{id}/cancelar")
-    @Operation(summary = "Cancelar doação", description = "Cancela uma doação pendente")
+    @GetMapping("/usuario/{userId}")
+    @Operation(summary = "Listar todas as doações de um usuário", description = "Lista doações onde o usuário está envolvido como doador ou beneficiário")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Doação cancelada com sucesso"),
-        @ApiResponse(responseCode = "404", description = "Doação não encontrada"),
-        @ApiResponse(responseCode = "409", description = "Doação já foi processada")
+        @ApiResponse(responseCode = "200", description = "Lista de doações do usuário")
     })
-    public ResponseEntity<Void> cancelarDoacao(@PathVariable String id) {
-        donationService.cancelarDoacao(id);
-        return ResponseEntity.ok().build();
-    }
-    
-    @GetMapping("/metadata/tipos")
-    @Operation(summary = "Listar tipos de doação", description = "Lista todos os tipos de doação disponíveis")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Lista de tipos de doação")
-    })
-    public ResponseEntity<List<TipoDoacao>> getTiposDoacao() {
-        return ResponseEntity.ok(donationService.getAvailableTipos());
-    }
-    
-    @GetMapping("/metadata/status")
-    @Operation(summary = "Listar status de doação", description = "Lista todos os status de doação disponíveis")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Lista de status de doação")
-    })
-    public ResponseEntity<List<StatusDoacao>> getStatusDoacao() {
-        return ResponseEntity.ok(donationService.getAvailableStatus());
+    @SecurityRequirement(name = "bearer-key")
+    public ResponseEntity<Page<DonationResponseDTO>> getUserDonations(
+            @PathVariable String userId,
+            @PageableDefault(size = 20) Pageable pageable) {
+        
+        Page<DonationResponseDTO> donations = donationService.findByUsuarioInvolvido(userId, pageable);
+        return ResponseEntity.ok(donations);
     }
     
     public record DonationStatsResponse(BigDecimal totalValue, Long totalCount) {}

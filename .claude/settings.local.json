@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./mvnw:*)",
+      "Bash(rm:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(mvn clean:*)",
+      "Bash(mvn test:*)",
+      "Bash(mvn package:*)",
+      "Bash(mvn:*)",
+      "Bash(mv:*)",
+      "Bash(timeout:*)",
+      "Bash(curl:*)",
+      "Bash(rg:*)",
+      "Bash(/home/guarnieri/.nvm/versions/node/v22.16.0/lib/node_modules/@anthropic-ai/claude-code/vendor/ripgrep/x64-linux/rg -n \"d\\.beneficiario\\.id\" \"/home/guarnieri/Desktop/Projeto Fábrica/web-pet-back/src/main/java/br/edu/utfpr/alunos/webpet/repositories/\")",
+      "Bash(/home/guarnieri/.nvm/versions/node/v22.16.0/lib/node_modules/@anthropic-ai/claude-code/vendor/ripgrep/x64-linux/rg -n \"p\\.responsavel\\.id\" \"/home/guarnieri/Desktop/Projeto Fábrica/web-pet-back/src/main/java/br/edu/utfpr/alunos/webpet/repositories/\")",
+      "Bash(ls:*)"
+    ],
+    "deny": []
+  }
+}

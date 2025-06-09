@@ -18,8 +18,6 @@ import lombok.Getter;
  * structured error information for proper error handling and
  * internationalization support.
  * 
- * @author WebPet Team
- * @since 1.0.0
  */
 @Getter
 public class AuthenticationException extends RuntimeException {

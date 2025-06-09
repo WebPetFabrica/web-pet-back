@@ -1,180 +1,170 @@
 package br.edu.utfpr.alunos.webpet.services.donation;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.edu.utfpr.alunos.webpet.domain.donation.Donation;
-import br.edu.utfpr.alunos.webpet.domain.donation.StatusDoacao;
-import br.edu.utfpr.alunos.webpet.domain.donation.TipoDoacao;
-import br.edu.utfpr.alunos.webpet.domain.user.BaseUser;
 import br.edu.utfpr.alunos.webpet.dto.donation.DonationCreateRequestDTO;
 import br.edu.utfpr.alunos.webpet.dto.donation.DonationResponseDTO;
 import br.edu.utfpr.alunos.webpet.infra.exception.BusinessException;
 import br.edu.utfpr.alunos.webpet.infra.exception.ErrorCode;
 import br.edu.utfpr.alunos.webpet.mapper.DonationMapper;
-import br.edu.utfpr.alunos.webpet.repositories.UserRepository;
-import br.edu.utfpr.alunos.webpet.repositories.ONGRepository;
-import br.edu.utfpr.alunos.webpet.repositories.ProtetorRepository;
 import br.edu.utfpr.alunos.webpet.repositories.DonationRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Implementation of DonationService interface.
+ * 
+ * <p>Provides complete donation management functionality including creation,
+ * querying, and analytics. Implements business rules and validation for
+ * donation operations.
+ * 
+ */
 @Service
 @Transactional
-@RequiredArgsConstructor
-@Slf4j
 public class DonationServiceImpl implements DonationService {
     
+    private static final Logger logger = LoggerFactory.getLogger(DonationServiceImpl.class);
+    
     private final DonationRepository donationRepository;
-    private final UserRepository userRepository;
-    private final ONGRepository ongRepository;
-    private final ProtetorRepository protetorRepository;
     private final DonationMapper donationMapper;
     
+    public DonationServiceImpl(DonationRepository donationRepository, DonationMapper donationMapper) {
+        this.donationRepository = donationRepository;
+        this.donationMapper = donationMapper;
+    }
+    
     @Override
-    public DonationResponseDTO createDonation(DonationCreateRequestDTO createRequest) {
-        log.info("Creating donation for beneficiary: {}", createRequest.beneficiarioId());
-        
-        if (createRequest.valor().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException(ErrorCode.DONATION_INVALID_AMOUNT);
+    public DonationResponseDTO createDonation(DonationCreateRequestDTO createRequest, String doadorId) {
+        try {
+            MDC.put("operation", "createDonation");
+            MDC.put("doadorId", doadorId);
+            MDC.put("beneficiarioId", createRequest.beneficiarioId());
+            
+            logger.info("Creating donation from donor: {} to beneficiary: {}", doadorId, createRequest.beneficiarioId());
+            
+            // Validate that donor and beneficiary are different
+            if (doadorId.equals(createRequest.beneficiarioId())) {
+                throw new BusinessException(ErrorCode.VALIDATION_ERROR, 
+                    "Usuário não pode fazer doação para si mesmo");
+            }
+            
+            // Create donation entity using mapper
+            Donation donation = donationMapper.toEntity(createRequest, doadorId);
+            
+            // Validate donation
+            if (!donation.isValid()) {
+                throw new BusinessException(ErrorCode.VALIDATION_ERROR, 
+                    "Dados da doação são inválidos");
+            }
+            
+            // Save donation
+            Donation savedDonation = donationRepository.save(donation);
+            
+            logger.info("Donation created successfully with ID: {} amount: {}", 
+                savedDonation.getId(), savedDonation.getValor());
+            
+            return donationMapper.toResponseDTO(savedDonation);
+            
+        } finally {
+            MDC.clear();
         }
-        
-        BaseUser beneficiario = findUserById(createRequest.beneficiarioId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-        
-        Donation donation = Donation.builder()
-                .valor(createRequest.valor())
-                .tipoDoacao(createRequest.tipoDoacao())
-                .mensagem(createRequest.mensagem())
-                .nomeDoador(createRequest.nomeDoador())
-                .emailDoador(createRequest.emailDoador())
-                .telefoneDoador(createRequest.telefoneDoador())
-                .beneficiarioId(beneficiario.getId())
-                .build();
-        
-        Donation savedDonation = donationRepository.save(donation);
-        log.info("Donation created successfully with ID: {}", savedDonation.getId());
-        
-        return donationMapper.toResponseDTO(savedDonation);
     }
     
     @Override
     @Transactional(readOnly = true)
     public Optional<DonationResponseDTO> findById(String id) {
+        logger.info("Finding donation by ID: {}", id);
+        
         return donationRepository.findById(id)
-                .map(donationMapper::toResponseDTO);
+            .map(donationMapper::toResponseDTO);
     }
     
     @Override
     @Transactional(readOnly = true)
     public Page<DonationResponseDTO> findByBeneficiario(String beneficiarioId, Pageable pageable) {
+        logger.info("Finding donations for beneficiary: {}", beneficiarioId);
+        
         return donationRepository.findByBeneficiarioId(beneficiarioId, pageable)
-                .map(donationMapper::toResponseDTO);
+            .map(donationMapper::toResponseDTO);
     }
     
     @Override
     @Transactional(readOnly = true)
-    public Page<DonationResponseDTO> findByStatus(StatusDoacao status, Pageable pageable) {
-        return donationRepository.findByStatusDoacao(status, pageable)
-                .map(donationMapper::toResponseDTO);
+    public Page<DonationResponseDTO> findByDoador(String doadorId, Pageable pageable) {
+        logger.info("Finding donations for donor: {}", doadorId);
+        
+        return donationRepository.findByDoadorId(doadorId, pageable)
+            .map(donationMapper::toResponseDTO);
     }
     
     @Override
     @Transactional(readOnly = true)
-    public Page<DonationResponseDTO> findByBeneficiarioAndStatus(String beneficiarioId, StatusDoacao status, Pageable pageable) {
-        return donationRepository.findByBeneficiarioIdAndStatus(beneficiarioId, status, pageable)
-                .map(donationMapper::toResponseDTO);
+    public Page<DonationResponseDTO> findByUsuarioInvolvido(String userId, Pageable pageable) {
+        logger.info("Finding donations for user: {}", userId);
+        
+        return donationRepository.findByUsuarioInvolvido(userId, pageable)
+            .map(donationMapper::toResponseDTO);
     }
     
     @Override
     @Transactional(readOnly = true)
-    public Page<DonationResponseDTO> searchDonations(String searchTerm, Pageable pageable) {
-        return donationRepository.searchDonations(searchTerm, pageable)
-                .map(donationMapper::toResponseDTO);
+    public Page<DonationResponseDTO> findByDateRange(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
+        logger.info("Finding donations between {} and {}", startDate, endDate);
+        
+        return donationRepository.findByDataDoacaoBetween(startDate, endDate, pageable)
+            .map(donationMapper::toResponseDTO);
     }
     
     @Override
     @Transactional(readOnly = true)
-    public List<TipoDoacao> getAvailableTipos() {
-        return Arrays.asList(TipoDoacao.values());
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<StatusDoacao> getAvailableStatus() {
-        return Arrays.asList(StatusDoacao.values());
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public BigDecimal getTotalDonationsByBeneficiario(String beneficiarioId) {
-        BigDecimal total = donationRepository.getTotalDonationsByBeneficiario(beneficiarioId);
+    public BigDecimal getTotalReceivedByBeneficiario(String beneficiarioId) {
+        logger.info("Calculating total received by beneficiary: {}", beneficiarioId);
+        
+        BigDecimal total = donationRepository.getTotalReceivedByBeneficiario(beneficiarioId);
         return total != null ? total : BigDecimal.ZERO;
     }
     
     @Override
     @Transactional(readOnly = true)
-    public Long getCountDonationsByBeneficiario(String beneficiarioId) {
-        return donationRepository.getCountDonationsByBeneficiario(beneficiarioId);
+    public BigDecimal getTotalDonatedByDoador(String doadorId) {
+        logger.info("Calculating total donated by donor: {}", doadorId);
+        
+        BigDecimal total = donationRepository.getTotalDonatedByDoador(doadorId);
+        return total != null ? total : BigDecimal.ZERO;
     }
     
     @Override
-    public void processarDoacao(String donationId, String transactionId) {
-        log.info("Processing donation {} with transaction {}", donationId, transactionId);
+    @Transactional(readOnly = true)
+    public Long getCountReceivedByBeneficiario(String beneficiarioId) {
+        logger.info("Counting donations received by beneficiary: {}", beneficiarioId);
         
-        Donation donation = donationRepository.findById(donationId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.DONATION_NOT_FOUND));
-        
-        if (donation.getStatusDoacao() != StatusDoacao.PENDENTE) {
-            throw new BusinessException(ErrorCode.DONATION_ALREADY_PROCESSED);
-        }
-        
-        donation.marcarComoProcessada(transactionId);
-        donationRepository.save(donation);
-        log.info("Donation {} processed successfully", donationId);
+        return donationRepository.countByBeneficiarioId(beneficiarioId);
     }
     
     @Override
-    public void marcarComoFalha(String donationId) {
-        log.info("Marking donation {} as failed", donationId);
+    @Transactional(readOnly = true)
+    public Long getCountMadeByDoador(String doadorId) {
+        logger.info("Counting donations made by donor: {}", doadorId);
         
-        Donation donation = donationRepository.findById(donationId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.DONATION_NOT_FOUND));
-        
-        donation.marcarComoFalha();
-        donationRepository.save(donation);
-        log.info("Donation {} marked as failed", donationId);
+        return donationRepository.countByDoadorId(doadorId);
     }
     
     @Override
-    public void cancelarDoacao(String donationId) {
-        log.info("Cancelling donation {}", donationId);
+    @Transactional(readOnly = true)
+    public Page<DonationResponseDTO> getRecentDonations(int days, Pageable pageable) {
+        logger.info("Finding donations from last {} days", days);
         
-        Donation donation = donationRepository.findById(donationId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.DONATION_NOT_FOUND));
-        
-        if (donation.getStatusDoacao() == StatusDoacao.PROCESSADA) {
-            throw new BusinessException(ErrorCode.DONATION_ALREADY_PROCESSED);
-        }
-        
-        donation.cancelar();
-        donationRepository.save(donation);
-        log.info("Donation {} cancelled successfully", donationId);
-    }
-    
-    private Optional<BaseUser> findUserById(String id) {
-        return userRepository.findById(id)
-                .map(BaseUser.class::cast)
-                .or(() -> ongRepository.findById(id)
-                        .map(BaseUser.class::cast))
-                .or(() -> protetorRepository.findById(id)
-                        .map(BaseUser.class::cast));
+        LocalDateTime sinceDate = LocalDateTime.now().minusDays(days);
+        return donationRepository.findRecentDonations(sinceDate, pageable)
+            .map(donationMapper::toResponseDTO);
     }
 }

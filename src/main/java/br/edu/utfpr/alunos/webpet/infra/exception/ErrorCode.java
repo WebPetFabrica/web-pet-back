@@ -21,6 +21,7 @@ public enum ErrorCode {
     VALIDATION_INVALID_CPF("VAL002", "CPF inválido"),
     VALIDATION_INVALID_CNPJ("VAL003", "CNPJ inválido"),
     VALIDATION_REQUIRED_FIELD("VAL004", "Campo obrigatório não informado"),
+    VALIDATION_ERROR("VAL012", "Erro de validação"),
     
     // Validation - User Type
     VALIDATION_INVALID_USER_TYPE("VAL005", "Tipo de usuário inválido"),
@@ -52,6 +53,9 @@ public enum ErrorCode {
     DONATION_NOT_FOUND("DON001", "Doação não encontrada"),
     DONATION_INVALID_AMOUNT("DON002", "Valor de doação inválido"),
     DONATION_ALREADY_PROCESSED("DON003", "Doação já foi processada"),
+    
+    // Business Logic
+    BUSINESS_ERROR("BUS001", "Erro de regra de negócio"),
     
     // Authorization
     ACCESS_DENIED("AUTH008", "Acesso negado"),

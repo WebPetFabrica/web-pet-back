@@ -27,8 +27,6 @@ import java.util.List;
  *   <li>Comprehensive audit logging</li>
  * </ul>
  * 
- * @author WebPet Team
- * @since 1.0.0
  */
 @Slf4j
 @Service

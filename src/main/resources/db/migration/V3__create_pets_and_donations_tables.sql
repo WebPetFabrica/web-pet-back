@@ -1,168 +1,131 @@
--- WebPet Database Migration V3: Create pets and donations tables
--- Adds support for pet management and donation tracking
+-- =============================================================================
+-- Migration V3: Pet Adoption and Donations System
+-- Description: Creates pets and donations tables for core business functionality
+-- Author: WebPet Team
+-- Date: 2025-06-09
+-- =============================================================================
 
--- Create pets table
+-- =============================================================================
+-- CREATE PETS TABLE
+-- =============================================================================
+
 CREATE TABLE pets (
     id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid()::text,
-    nome VARCHAR(100) NOT NULL,
-    especie VARCHAR(20) NOT NULL,
-    raca VARCHAR(50) NOT NULL,
-    genero VARCHAR(10) NOT NULL,
-    porte VARCHAR(15) NOT NULL,
-    data_nascimento DATE NOT NULL,
-    descricao TEXT,
-    foto_url VARCHAR(500),
-    status_adocao VARCHAR(20) NOT NULL DEFAULT 'DISPONIVEL',
-    ativo BOOLEAN NOT NULL DEFAULT true,
+    nome VARCHAR(255) NOT NULL,
+    especie VARCHAR(20) NOT NULL CHECK (especie IN ('CACHORRO', 'GATO')),
+    porte VARCHAR(20) NOT NULL CHECK (porte IN ('PEQUENO', 'MEDIO', 'GRANDE')),
+    genero VARCHAR(20) NOT NULL CHECK (genero IN ('MACHO', 'FEMEA')),
+    idade INTEGER NOT NULL CHECK (idade >= 0 AND idade <= 30),
     responsavel_id VARCHAR(36) NOT NULL,
-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    CONSTRAINT fk_pets_responsavel FOREIGN KEY (responsavel_id) 
-        REFERENCES users(id) ON DELETE CASCADE,
-    
-    CONSTRAINT chk_pets_especie CHECK (
-        especie IN ('CACHORRO', 'GATO', 'PASSARO', 'COELHO', 'HAMSTER', 'PEIXE', 'TARTARUGA', 'OUTRO')
-    ),
-    
-    CONSTRAINT chk_pets_genero CHECK (
-        genero IN ('MACHO', 'FEMEA')
-    ),
-    
-    CONSTRAINT chk_pets_porte CHECK (
-        porte IN ('PEQUENO', 'MEDIO', 'GRANDE', 'GIGANTE')
-    ),
-    
-    CONSTRAINT chk_pets_status_adocao CHECK (
-        status_adocao IN ('DISPONIVEL', 'EM_PROCESSO', 'ADOTADO', 'INDISPONIVEL')
-    ),
-    
-    CONSTRAINT chk_pets_data_nascimento_valid CHECK (
-        data_nascimento <= CURRENT_DATE
-    )
+    disponivel BOOLEAN NOT NULL DEFAULT true,
+    descricao TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Add foreign key constraints for ONG and Protetor tables
-ALTER TABLE pets ADD CONSTRAINT fk_pets_responsavel_ongs 
-    FOREIGN KEY (responsavel_id) REFERENCES ongs(id) ON DELETE CASCADE;
+-- =============================================================================
+-- CREATE DONATIONS TABLE
+-- =============================================================================
 
-ALTER TABLE pets ADD CONSTRAINT fk_pets_responsavel_protetores 
-    FOREIGN KEY (responsavel_id) REFERENCES protetores(id) ON DELETE CASCADE;
-
--- Create doacoes table
 CREATE TABLE doacoes (
     id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid()::text,
-    valor DECIMAL(10,2) NOT NULL,
-    tipo_doacao VARCHAR(20) NOT NULL,
-    mensagem TEXT,
-    nome_doador VARCHAR(100) NOT NULL,
-    email_doador VARCHAR(255),
-    telefone_doador VARCHAR(20),
-    status_doacao VARCHAR(20) NOT NULL DEFAULT 'PENDENTE',
-    transaction_id VARCHAR(100),
+    doador_id VARCHAR(36) NOT NULL,
     beneficiario_id VARCHAR(36) NOT NULL,
-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    processado_em TIMESTAMP,
-    
-    CONSTRAINT fk_doacoes_beneficiario_users FOREIGN KEY (beneficiario_id) 
-        REFERENCES users(id) ON DELETE CASCADE,
-    
-    CONSTRAINT fk_doacoes_beneficiario_ongs FOREIGN KEY (beneficiario_id) 
-        REFERENCES ongs(id) ON DELETE CASCADE,
-    
-    CONSTRAINT fk_doacoes_beneficiario_protetores FOREIGN KEY (beneficiario_id) 
-        REFERENCES protetores(id) ON DELETE CASCADE,
-    
-    CONSTRAINT chk_doacoes_valor_positive CHECK (
-        valor > 0
-    ),
-    
-    CONSTRAINT chk_doacoes_tipo CHECK (
-        tipo_doacao IN ('MONETARIA', 'RACAO', 'MEDICAMENTOS', 'BRINQUEDOS', 'ACESSORIOS', 'OUTRO')
-    ),
-    
-    CONSTRAINT chk_doacoes_status CHECK (
-        status_doacao IN ('PENDENTE', 'PROCESSADA', 'FALHA', 'CANCELADA')
-    ),
-    
-    CONSTRAINT chk_doacoes_email_format CHECK (
-        email_doador IS NULL OR 
-        email_doador ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
-    )
+    valor DECIMAL(10,2) NOT NULL CHECK (valor > 0),
+    data_doacao TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create indexes for performance optimization
--- Pets indexes
-CREATE INDEX idx_pets_especie ON pets(especie) WHERE ativo = true;
-CREATE INDEX idx_pets_genero ON pets(genero) WHERE ativo = true;
-CREATE INDEX idx_pets_porte ON pets(porte) WHERE ativo = true;
-CREATE INDEX idx_pets_status_adocao ON pets(status_adocao) WHERE ativo = true;
-CREATE INDEX idx_pets_responsavel ON pets(responsavel_id) WHERE ativo = true;
-CREATE INDEX idx_pets_ativo_criado ON pets(ativo, criado_em DESC);
-CREATE INDEX idx_pets_data_nascimento ON pets(data_nascimento) WHERE ativo = true;
-CREATE INDEX idx_pets_raca ON pets(raca) WHERE ativo = true;
+-- =============================================================================
+-- INDEXES FOR PERFORMANCE OPTIMIZATION
+-- =============================================================================
 
--- Composite index for common filtering queries
-CREATE INDEX idx_pets_filters ON pets(ativo, status_adocao, especie, genero, porte, criado_em DESC) 
-    WHERE ativo = true AND status_adocao = 'DISPONIVEL';
+-- Pets table indexes
+CREATE INDEX idx_pets_especie ON pets(especie) WHERE disponivel = true;
+CREATE INDEX idx_pets_porte ON pets(porte) WHERE disponivel = true;
+CREATE INDEX idx_pets_genero ON pets(genero) WHERE disponivel = true;
+CREATE INDEX idx_pets_idade ON pets(idade) WHERE disponivel = true;
+CREATE INDEX idx_pets_disponivel ON pets(disponivel);
+CREATE INDEX idx_pets_responsavel_id ON pets(responsavel_id);
+CREATE INDEX idx_pets_created_at ON pets(created_at DESC);
+CREATE INDEX idx_pets_responsavel_disponivel ON pets(responsavel_id, disponivel);
 
--- Text search index for pets
-CREATE INDEX idx_pets_text_search ON pets USING gin(
-    to_tsvector('portuguese', 
-        COALESCE(nome, '') || ' ' || 
-        COALESCE(raca, '') || ' ' || 
-        COALESCE(descricao, '')
-    )
-) WHERE ativo = true;
+-- Composite indexes for common filtering scenarios
+CREATE INDEX idx_pets_especie_porte_disponivel ON pets(especie, porte, disponivel) WHERE disponivel = true;
+CREATE INDEX idx_pets_especie_idade_disponivel ON pets(especie, idade, disponivel) WHERE disponivel = true;
+CREATE INDEX idx_pets_search_filters ON pets(especie, porte, genero, idade) WHERE disponivel = true;
 
--- Donations indexes
-CREATE INDEX idx_doacoes_beneficiario ON doacoes(beneficiario_id);
-CREATE INDEX idx_doacoes_status ON doacoes(status_doacao);
-CREATE INDEX idx_doacoes_tipo ON doacoes(tipo_doacao);
-CREATE INDEX idx_doacoes_criado_em ON doacoes(criado_em DESC);
-CREATE INDEX idx_doacoes_beneficiario_status ON doacoes(beneficiario_id, status_doacao);
-CREATE INDEX idx_doacoes_processado_em ON doacoes(processado_em DESC) WHERE processado_em IS NOT NULL;
+-- Donations table indexes
+CREATE INDEX idx_doacoes_doador_id ON doacoes(doador_id);
+CREATE INDEX idx_doacoes_beneficiario_id ON doacoes(beneficiario_id);
+CREATE INDEX idx_doacoes_data_doacao ON doacoes(data_doacao DESC);
+CREATE INDEX idx_doacoes_valor ON doacoes(valor);
+CREATE INDEX idx_doacoes_doador_data ON doacoes(doador_id, data_doacao DESC);
+CREATE INDEX idx_doacoes_beneficiario_data ON doacoes(beneficiario_id, data_doacao DESC);
 
--- Text search index for donations
-CREATE INDEX idx_doacoes_text_search ON doacoes USING gin(
-    to_tsvector('portuguese', 
-        COALESCE(nome_doador, '') || ' ' || 
-        COALESCE(email_doador, '') || ' ' || 
-        COALESCE(mensagem, '')
-    )
-);
+-- =============================================================================
+-- CONSTRAINTS AND VALIDATIONS
+-- =============================================================================
 
--- Apply updated_at triggers to new tables
-CREATE TRIGGER update_pets_updated_at 
-    BEFORE UPDATE ON pets 
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+-- Pet constraints
+ALTER TABLE pets 
+    ADD CONSTRAINT chk_pets_nome_not_empty 
+    CHECK (LENGTH(TRIM(nome)) > 0);
 
--- Create partial unique indexes for business rules
-CREATE UNIQUE INDEX idx_pets_unique_active_name_responsavel 
-    ON pets(nome, responsavel_id) 
-    WHERE ativo = true;
+ALTER TABLE pets 
+    ADD CONSTRAINT chk_pets_nome_length 
+    CHECK (LENGTH(nome) <= 255);
 
--- Create statistics for query optimization
-CREATE STATISTICS pets_multi_column_stats ON especie, genero, porte, status_adocao FROM pets;
-CREATE STATISTICS doacoes_multi_column_stats ON beneficiario_id, status_doacao, tipo_doacao FROM doacoes;
+ALTER TABLE pets 
+    ADD CONSTRAINT chk_pets_descricao_length 
+    CHECK (descricao IS NULL OR LENGTH(descricao) <= 2000);
 
--- Add comments for documentation
-COMMENT ON TABLE pets IS 'Table storing pet information for adoption';
-COMMENT ON TABLE doacoes IS 'Table storing donation information';
+-- Donation constraints
+ALTER TABLE doacoes 
+    ADD CONSTRAINT chk_doacoes_different_users 
+    CHECK (doador_id != beneficiario_id);
 
-COMMENT ON COLUMN pets.especie IS 'Species of the pet (CACHORRO, GATO, etc.)';
-COMMENT ON COLUMN pets.genero IS 'Gender of the pet (MACHO, FEMEA)';
-COMMENT ON COLUMN pets.porte IS 'Size of the pet (PEQUENO, MEDIO, GRANDE, GIGANTE)';
-COMMENT ON COLUMN pets.status_adocao IS 'Adoption status (DISPONIVEL, EM_PROCESSO, ADOTADO, INDISPONIVEL)';
-COMMENT ON COLUMN pets.ativo IS 'Soft delete flag for pets';
-COMMENT ON COLUMN pets.responsavel_id IS 'References the responsible user (ONG, Protetor, or User)';
+ALTER TABLE doacoes 
+    ADD CONSTRAINT chk_doacoes_data_not_future 
+    CHECK (data_doacao <= CURRENT_TIMESTAMP);
 
-COMMENT ON COLUMN doacoes.tipo_doacao IS 'Type of donation (MONETARIA, RACAO, etc.)';
-COMMENT ON COLUMN doacoes.status_doacao IS 'Processing status (PENDENTE, PROCESSADA, FALHA, CANCELADA)';
-COMMENT ON COLUMN doacoes.beneficiario_id IS 'References the beneficiary user (ONG, Protetor, or User)';
-COMMENT ON COLUMN doacoes.transaction_id IS 'External payment processor transaction ID';
+-- =============================================================================
+-- TRIGGERS FOR AUTOMATIC TIMESTAMP UPDATES
+-- =============================================================================
 
--- Create sample data for testing (optional - remove in production)
--- INSERT INTO pets (nome, especie, raca, genero, porte, data_nascimento, descricao, responsavel_id)
--- SELECT 'Rex', 'CACHORRO', 'Labrador', 'MACHO', 'GRANDE', '2020-01-15', 'Cão muito carinhoso e brincalhão', id
--- FROM ongs LIMIT 1;
+-- Apply updated_at triggers using existing function
+CREATE TRIGGER trigger_pets_updated_at
+    BEFORE UPDATE ON pets
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER trigger_doacoes_updated_at
+    BEFORE UPDATE ON doacoes
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- =============================================================================
+-- TABLE COMMENTS FOR DOCUMENTATION
+-- =============================================================================
+
+COMMENT ON TABLE pets IS 'Stores information about pets available for adoption';
+COMMENT ON TABLE doacoes IS 'Stores donation transactions between users';
+
+-- Pet column comments
+COMMENT ON COLUMN pets.id IS 'Unique identifier for the pet';
+COMMENT ON COLUMN pets.nome IS 'Pet name (required, max 255 characters)';
+COMMENT ON COLUMN pets.especie IS 'Pet species: CACHORRO or GATO';
+COMMENT ON COLUMN pets.porte IS 'Pet size: PEQUENO, MEDIO, or GRANDE';
+COMMENT ON COLUMN pets.genero IS 'Pet gender: MACHO or FEMEA';
+COMMENT ON COLUMN pets.idade IS 'Pet age in years (0-30)';
+COMMENT ON COLUMN pets.responsavel_id IS 'ID of the responsible user (ONG or PROTETOR)';
+COMMENT ON COLUMN pets.disponivel IS 'Whether the pet is available for adoption';
+COMMENT ON COLUMN pets.descricao IS 'Optional description of the pet (max 2000 characters)';
+
+-- Donation column comments
+COMMENT ON COLUMN doacoes.id IS 'Unique identifier for the donation';
+COMMENT ON COLUMN doacoes.doador_id IS 'ID of the user making the donation';
+COMMENT ON COLUMN doacoes.beneficiario_id IS 'ID of the user receiving the donation (ONG or PROTETOR)';
+COMMENT ON COLUMN doacoes.valor IS 'Donation amount in Brazilian Real (BRL)';
+COMMENT ON COLUMN doacoes.data_doacao IS 'Timestamp when the donation was made';

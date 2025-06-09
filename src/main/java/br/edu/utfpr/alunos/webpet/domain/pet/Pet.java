@@ -1,181 +1,233 @@
 package br.edu.utfpr.alunos.webpet.domain.pet;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-// Removed BaseUser import
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-// Removed FetchType import
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-// Removed unused JPA imports
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Entity representing a pet available for adoption in the WebPet system.
+ * 
+ * <p>This entity stores all the necessary information about pets that can be adopted,
+ * including their basic characteristics, availability status, and responsible user.
+ * 
+ * <p>Key design decisions:
+ * <ul>
+ *   <li>Uses UUID for primary key to ensure uniqueness across distributed systems</li>
+ *   <li>Age is stored as integer (years) for simplicity</li>
+ *   <li>Boolean flag for availability instead of complex status enum</li>
+ *   <li>Responsible user ID references ONGs or PROTETORs only</li>
+ * </ul>
+ * 
+ */
 @Entity
 @Table(name = "pets")
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class Pet {
     
+    /**
+     * Unique identifier for the pet.
+     * Uses UUID for enhanced security and scalability.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     
+    /**
+     * Pet's name (required, max 255 characters).
+     * Used for identification and display purposes.
+     */
+    @NotBlank(message = "Nome é obrigatório")
+    @Size(max = 255, message = "Nome deve ter no máximo 255 caracteres")
     @Column(nullable = false)
     private String nome;
     
+    /**
+     * Pet's species - currently supports dogs and cats only.
+     * Used for filtering and categorization.
+     */
+    @NotNull(message = "Espécie é obrigatória")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Especie especie;
     
-    @Column(nullable = false)
-    private String raca;
-    
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Genero genero;
-    
+    /**
+     * Pet's size category for matching with suitable adopters.
+     * Important for housing compatibility.
+     */
+    @NotNull(message = "Porte é obrigatório")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Porte porte;
     
-    @Column(nullable = false)
-    private LocalDate dataNascimento;
-    
-    @Column(columnDefinition = "TEXT")
-    private String descricao;
-    
-    @Column
-    private String fotoUrl;
-    
+    /**
+     * Pet's gender for breeding control and adopter preferences.
+     */
+    @NotNull(message = "Gênero é obrigatório")
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private StatusAdocao statusAdocao = StatusAdocao.DISPONIVEL;
+    private Genero genero;
     
+    /**
+     * Pet's age in years (0-30).
+     * Used for filtering and care requirements assessment.
+     */
+    @NotNull(message = "Idade é obrigatória")
+    @Min(value = 0, message = "Idade deve ser no mínimo 0 anos")
+    @Max(value = 30, message = "Idade deve ser no máximo 30 anos")
     @Column(nullable = false)
-    private boolean ativo = true;
+    private Integer idade;
     
+    /**
+     * ID of the responsible user (ONG or PROTETOR).
+     * References the user responsible for the pet's care.
+     */
+    @NotBlank(message = "Responsável é obrigatório")
     @Column(name = "responsavel_id", nullable = false)
     private String responsavelId;
     
+    /**
+     * Whether the pet is available for adoption.
+     * False means adopted or temporarily unavailable.
+     */
+    @Column(nullable = false)
+    private Boolean disponivel = true;
+    
+    /**
+     * Optional description providing more details about the pet.
+     * Max 2000 characters for detailed information.
+     */
+    @Size(max = 2000, message = "Descrição deve ter no máximo 2000 caracteres")
+    @Column(columnDefinition = "TEXT")
+    private String descricao;
+    
+    /**
+     * Timestamp when the pet was registered in the system.
+     * Automatically set by Hibernate on persist.
+     */
     @CreationTimestamp
-    private LocalDateTime criadoEm;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
     
+    /**
+     * Timestamp when the pet information was last updated.
+     * Automatically updated by Hibernate on merge.
+     */
     @UpdateTimestamp
-    private LocalDateTime atualizadoEm;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
     
-    private Pet(String nome, Especie especie, String raca, Genero genero, Porte porte,
-                LocalDate dataNascimento, String descricao, String fotoUrl, String responsavelId) {
+    /**
+     * Constructor for creating a new pet with required fields.
+     * 
+     * @param nome pet's name
+     * @param especie pet's species
+     * @param porte pet's size
+     * @param genero pet's gender
+     * @param idade pet's age in years
+     * @param responsavelId ID of the responsible user
+     */
+    public Pet(String nome, Especie especie, Porte porte, Genero genero, 
+               Integer idade, String responsavelId) {
         this.nome = nome;
         this.especie = especie;
-        this.raca = raca;
-        this.genero = genero;
         this.porte = porte;
-        this.dataNascimento = dataNascimento;
-        this.descricao = descricao;
-        this.fotoUrl = fotoUrl;
+        this.genero = genero;
+        this.idade = idade;
         this.responsavelId = responsavelId;
-        this.statusAdocao = StatusAdocao.DISPONIVEL;
-        this.ativo = true;
+        this.disponivel = true;
     }
     
-    public static PetBuilder builder() {
-        return new PetBuilder();
+    /**
+     * Constructor for creating a new pet with optional description.
+     * 
+     * @param nome pet's name
+     * @param especie pet's species
+     * @param porte pet's size
+     * @param genero pet's gender
+     * @param idade pet's age in years
+     * @param responsavelId ID of the responsible user
+     * @param descricao optional description
+     */
+    public Pet(String nome, Especie especie, Porte porte, Genero genero, 
+               Integer idade, String responsavelId, String descricao) {
+        this(nome, especie, porte, genero, idade, responsavelId);
+        this.descricao = descricao;
     }
     
-    public int getIdadeEmAnos() {
-        return LocalDate.now().getYear() - dataNascimento.getYear();
-    }
-    
+    /**
+     * Marks the pet as adopted (no longer available).
+     * This method should be called when an adoption is confirmed.
+     */
     public void marcarComoAdotado() {
-        this.statusAdocao = StatusAdocao.ADOTADO;
+        this.disponivel = false;
     }
     
-    public void marcarComoIndisponivel() {
-        this.statusAdocao = StatusAdocao.INDISPONIVEL;
-    }
-    
+    /**
+     * Marks the pet as available for adoption.
+     * This method can be called to make a pet available again.
+     */
     public void marcarComoDisponivel() {
-        this.statusAdocao = StatusAdocao.DISPONIVEL;
+        this.disponivel = true;
     }
     
-    public void desativar() {
-        this.ativo = false;
+    /**
+     * Temporarily marks the pet as unavailable.
+     * Used for medical treatment, behavioral issues, etc.
+     */
+    public void marcarComoIndisponivel() {
+        this.disponivel = false;
     }
     
-    public void ativar() {
-        this.ativo = true;
-    }
-    
-    public static class PetBuilder {
-        private String nome;
-        private Especie especie;
-        private String raca;
-        private Genero genero;
-        private Porte porte;
-        private LocalDate dataNascimento;
-        private String descricao;
-        private String fotoUrl;
-        private String responsavelId;
-        
-        public PetBuilder nome(String nome) {
+    /**
+     * Updates the pet's basic information.
+     * 
+     * @param nome new name
+     * @param descricao new description
+     */
+    public void atualizarInformacoes(String nome, String descricao) {
+        if (nome != null && !nome.trim().isEmpty()) {
             this.nome = nome;
-            return this;
         }
-        
-        public PetBuilder especie(Especie especie) {
-            this.especie = especie;
-            return this;
-        }
-        
-        public PetBuilder raca(String raca) {
-            this.raca = raca;
-            return this;
-        }
-        
-        public PetBuilder genero(Genero genero) {
-            this.genero = genero;
-            return this;
-        }
-        
-        public PetBuilder porte(Porte porte) {
-            this.porte = porte;
-            return this;
-        }
-        
-        public PetBuilder dataNascimento(LocalDate dataNascimento) {
-            this.dataNascimento = dataNascimento;
-            return this;
-        }
-        
-        public PetBuilder descricao(String descricao) {
-            this.descricao = descricao;
-            return this;
-        }
-        
-        public PetBuilder fotoUrl(String fotoUrl) {
-            this.fotoUrl = fotoUrl;
-            return this;
-        }
-        
-        public PetBuilder responsavelId(String responsavelId) {
-            this.responsavelId = responsavelId;
-            return this;
-        }
-        
-        public Pet build() {
-            return new Pet(nome, especie, raca, genero, porte, dataNascimento, descricao, fotoUrl, responsavelId);
-        }
+        this.descricao = descricao;
+    }
+    
+    /**
+     * Checks if the pet is available for adoption.
+     * 
+     * @return true if available, false otherwise
+     */
+    public boolean isDisponivel() {
+        return Boolean.TRUE.equals(this.disponivel);
+    }
+    
+    /**
+     * Returns a formatted display name for the pet.
+     * 
+     * @return formatted string with name, species, and age
+     */
+    public String getDisplayName() {
+        return String.format("%s (%s, %d anos)", nome, especie.getDescricao(), idade);
     }
 }
