@@ -46,10 +46,10 @@ Thumbs.db
 *.swp
 *~.nib
 
-# Claude AI generated files and folders
-.claude/
-claude_*
-*.claude
+# Development artifacts
+.dev/
+dev_*
+*.dev
 
 # Application startup and testing logs
 app-*.log

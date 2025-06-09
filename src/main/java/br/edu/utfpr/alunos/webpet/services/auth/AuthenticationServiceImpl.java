@@ -52,8 +52,6 @@ import org.springframework.transaction.annotation.Transactional;
  *   <li>Email confirmation required for account activation</li>
  * </ul>
  * 
- * @author WebPet Team
- * @since 1.0.0
  */
 @Slf4j
 @Service
@@ -184,7 +182,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             log.debug("Password saved to history for user: {} [correlationId: {}]", 
                 user.getEmail(), correlationId);
             
-            // TODO: Send email confirmation for account verification
             // emailConfirmationService.sendConfirmationEmail(user);
             log.debug("Email confirmation will be implemented later for user: {} [correlationId: {}]", 
                 user.getEmail(), correlationId);
@@ -261,7 +258,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             log.debug("Password saved to history for ONG: {} [correlationId: {}]", 
                 ong.getEmail(), correlationId);
             
-            // TODO: Send email confirmation for account verification
             // emailConfirmationService.sendConfirmationEmail(ong);
             log.debug("Email confirmation will be implemented later for ONG: {} [correlationId: {}]", 
                 ong.getEmail(), correlationId);
@@ -338,7 +334,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             log.debug("Password saved to history for Protetor: {} [correlationId: {}]", 
                 protetor.getEmail(), correlationId);
             
-            // TODO: Send email confirmation for account verification
             // emailConfirmationService.sendConfirmationEmail(protetor);
             log.debug("Email confirmation will be implemented later for Protetor: {} [correlationId: {}]", 
                 protetor.getEmail(), correlationId);

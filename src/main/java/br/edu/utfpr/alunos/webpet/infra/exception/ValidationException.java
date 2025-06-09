@@ -18,8 +18,6 @@ import lombok.Getter;
  * structured error information for proper error handling and
  * client-side validation feedback.
  * 
- * @author WebPet Team
- * @since 1.0.0
  */
 @Getter
 public class ValidationException extends RuntimeException {

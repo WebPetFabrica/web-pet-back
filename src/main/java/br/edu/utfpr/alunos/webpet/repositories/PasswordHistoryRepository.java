@@ -23,8 +23,6 @@ import java.util.Optional;
  *   <li>Bulk operations for system maintenance</li>
  * </ul>
  * 
- * @author WebPet Team
- * @since 1.0.0
  */
 @Repository
 public interface PasswordHistoryRepository extends JpaRepository<PasswordHistory, String> {

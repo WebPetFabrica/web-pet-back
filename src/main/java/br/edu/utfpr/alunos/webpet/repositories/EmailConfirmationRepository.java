@@ -16,7 +16,6 @@ public interface EmailConfirmationRepository extends JpaRepository<EmailConfirma
     Optional<EmailConfirmation> findByToken(String token);
     Optional<EmailConfirmation> findByUserId(String userId);
     
-    // ADICIONAR estes métodos:
     @Query("SELECT e FROM EmailConfirmation e WHERE e.userId = :userId ORDER BY e.createdAt DESC")
     Optional<EmailConfirmation> findLatestByUserId(@Param("userId") String userId);
     

@@ -37,93 +37,91 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
+/**
+ * REST Controller for Pet management operations.
+ * 
+ * <p>Provides comprehensive pet CRUD operations, filtering, searching,
+ * and status management endpoints. Supports pagination and filtering
+ * for efficient data retrieval.
+ * 
+ */
 @RestController
 @RequestMapping("/pets")
-@RequiredArgsConstructor
 @Tag(name = "Pets", description = "Endpoints para gerenciamento de pets")
 public class PetController {
     
     private final PetService petService;
     
+    public PetController(PetService petService) {
+        this.petService = petService;
+    }
+    
     @PostMapping
-    @Operation(summary = "Criar novo pet", description = "Cria um novo pet no sistema")
-    @SecurityRequirement(name = "bearer-token")
+    @Operation(summary = "Cadastrar novo pet", description = "Cadastra um novo pet para adoção")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Pet criado com sucesso"),
+        @ApiResponse(responseCode = "201", description = "Pet cadastrado com sucesso"),
         @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-        @ApiResponse(responseCode = "401", description = "Não autorizado")
+        @ApiResponse(responseCode = "401", description = "Não autorizado"),
+        @ApiResponse(responseCode = "403", description = "Acesso negado")
     })
+    @SecurityRequirement(name = "bearer-key")
     public ResponseEntity<PetResponseDTO> createPet(
             @Valid @RequestBody PetCreateRequestDTO createRequest,
             @AuthenticationPrincipal UserDetails userDetails) {
         
-        String userId = getUserId(userDetails);
-        PetResponseDTO response = petService.createPet(createRequest, userId);
+        PetResponseDTO response = petService.createPet(createRequest, userDetails.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     
-    @GetMapping("/{id}")
-    @Operation(summary = "Buscar pet por ID", description = "Busca um pet específico pelo seu ID")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Pet encontrado"),
-        @ApiResponse(responseCode = "404", description = "Pet não encontrado")
-    })
-    public ResponseEntity<PetResponseDTO> getPetById(@PathVariable String id) {
-        return petService.findById(id)
-                .map(pet -> ResponseEntity.ok(pet))
-                .orElse(ResponseEntity.notFound().build());
-    }
-    
     @GetMapping
-    @Operation(summary = "Listar pets", description = "Lista pets disponíveis com filtros opcionais")
+    @Operation(summary = "Listar pets disponíveis", description = "Lista todos os pets disponíveis para adoção com filtros opcionais")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Lista de pets retornada com sucesso")
     })
-    public ResponseEntity<Page<PetResponseDTO>> listPets(
-            @Parameter(description = "Filtrar por espécie") @RequestParam(required = false) Especie especie,
-            @Parameter(description = "Filtrar por gênero") @RequestParam(required = false) Genero genero,
-            @Parameter(description = "Filtrar por porte") @RequestParam(required = false) Porte porte,
-            @Parameter(description = "Idade mínima em anos") @RequestParam(required = false) Integer idadeMinima,
-            @Parameter(description = "Idade máxima em anos") @RequestParam(required = false) Integer idadeMaxima,
-            @Parameter(description = "Filtrar por raça") @RequestParam(required = false) String raca,
-            @Parameter(description = "Termo de busca geral") @RequestParam(required = false) String search,
+    public ResponseEntity<Page<PetResponseDTO>> listAvailablePets(
+            @Parameter(description = "Filtro por espécie") @RequestParam(required = false) Especie especie,
+            @Parameter(description = "Filtro por porte") @RequestParam(required = false) Porte porte,
+            @Parameter(description = "Filtro por gênero") @RequestParam(required = false) Genero genero,
+            @Parameter(description = "Idade mínima") @RequestParam(required = false) Integer idadeMinima,
+            @Parameter(description = "Idade máxima") @RequestParam(required = false) Integer idadeMaxima,
+            @Parameter(description = "Filtro por responsável") @RequestParam(required = false) String responsavelId,
+            @Parameter(description = "Termo de busca") @RequestParam(required = false) String search,
             @PageableDefault(size = 20) Pageable pageable) {
         
         Page<PetResponseDTO> pets;
         
         if (search != null && !search.trim().isEmpty()) {
+            // Search by name/description
             pets = petService.searchPets(search.trim(), pageable);
-        } else if (hasFilters(especie, genero, porte, idadeMinima, idadeMaxima, raca)) {
-            PetFilterDTO filters = new PetFilterDTO(especie, genero, porte, idadeMinima, idadeMaxima, raca);
+        } else if (hasFilters(especie, porte, genero, idadeMinima, idadeMaxima, responsavelId)) {
+            // Apply filters
+            PetFilterDTO filters = new PetFilterDTO(especie, genero, porte, idadeMinima, idadeMaxima, responsavelId);
             pets = petService.findPetsWithFilters(filters, pageable);
         } else {
+            // Get all available pets
             pets = petService.findAllAvailablePets(pageable);
         }
         
         return ResponseEntity.ok(pets);
     }
     
-    @GetMapping("/my-pets")
-    @Operation(summary = "Listar meus pets", description = "Lista pets do usuário autenticado")
-    @SecurityRequirement(name = "bearer-token")
+    @GetMapping("/{id}")
+    @Operation(summary = "Buscar pet por ID", description = "Retorna as informações de um pet específico")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Lista de pets do usuário"),
-        @ApiResponse(responseCode = "401", description = "Não autorizado")
+        @ApiResponse(responseCode = "200", description = "Pet encontrado"),
+        @ApiResponse(responseCode = "404", description = "Pet não encontrado")
     })
-    public ResponseEntity<Page<PetResponseDTO>> getMyPets(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @PageableDefault(size = 20) Pageable pageable) {
+    public ResponseEntity<PetResponseDTO> getPetById(
+            @Parameter(description = "ID do pet") @PathVariable String id) {
         
-        String userId = getUserId(userDetails);
-        Page<PetResponseDTO> pets = petService.findPetsByResponsavel(userId, pageable);
-        return ResponseEntity.ok(pets);
+        return petService.findById(id)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
     }
     
     @PutMapping("/{id}")
-    @Operation(summary = "Atualizar pet", description = "Atualiza informações de um pet")
-    @SecurityRequirement(name = "bearer-token")
+    @Operation(summary = "Atualizar pet", description = "Atualiza as informações de um pet")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Pet atualizado com sucesso"),
         @ApiResponse(responseCode = "400", description = "Dados inválidos"),
@@ -131,135 +129,132 @@ public class PetController {
         @ApiResponse(responseCode = "403", description = "Acesso negado"),
         @ApiResponse(responseCode = "404", description = "Pet não encontrado")
     })
+    @SecurityRequirement(name = "bearer-key")
     public ResponseEntity<PetResponseDTO> updatePet(
-            @PathVariable String id,
+            @Parameter(description = "ID do pet") @PathVariable String id,
             @Valid @RequestBody PetUpdateRequestDTO updateRequest,
             @AuthenticationPrincipal UserDetails userDetails) {
         
-        String userId = getUserId(userDetails);
-        PetResponseDTO response = petService.updatePet(id, updateRequest, userId);
+        PetResponseDTO response = petService.updatePet(id, updateRequest, userDetails.getUsername());
         return ResponseEntity.ok(response);
     }
     
     @DeleteMapping("/{id}")
-    @Operation(summary = "Deletar pet", description = "Remove um pet do sistema (soft delete)")
-    @SecurityRequirement(name = "bearer-token")
+    @Operation(summary = "Excluir pet", description = "Remove um pet do sistema")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Pet deletado com sucesso"),
+        @ApiResponse(responseCode = "204", description = "Pet excluído com sucesso"),
         @ApiResponse(responseCode = "401", description = "Não autorizado"),
         @ApiResponse(responseCode = "403", description = "Acesso negado"),
         @ApiResponse(responseCode = "404", description = "Pet não encontrado")
     })
+    @SecurityRequirement(name = "bearer-key")
     public ResponseEntity<Void> deletePet(
-            @PathVariable String id,
+            @Parameter(description = "ID do pet") @PathVariable String id,
             @AuthenticationPrincipal UserDetails userDetails) {
         
-        String userId = getUserId(userDetails);
-        petService.deletePet(id, userId);
+        petService.deletePet(id, userDetails.getUsername());
         return ResponseEntity.noContent().build();
     }
     
-    @PatchMapping("/{id}/status/adotado")
-    @Operation(summary = "Marcar como adotado", description = "Marca um pet como adotado")
-    @SecurityRequirement(name = "bearer-token")
+    @GetMapping("/meus-pets")
+    @Operation(summary = "Listar meus pets", description = "Lista todos os pets do usuário logado")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Lista de pets retornada com sucesso"),
+        @ApiResponse(responseCode = "401", description = "Não autorizado")
+    })
+    @SecurityRequirement(name = "bearer-key")
+    public ResponseEntity<Page<PetResponseDTO>> getMyPets(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PageableDefault(size = 20) Pageable pageable) {
+        
+        Page<PetResponseDTO> pets = petService.findPetsByResponsavel(userDetails.getUsername(), pageable);
+        return ResponseEntity.ok(pets);
+    }
+    
+    @PatchMapping("/{id}/adotar")
+    @Operation(summary = "Marcar pet como adotado", description = "Marca um pet como adotado")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Status atualizado com sucesso"),
         @ApiResponse(responseCode = "401", description = "Não autorizado"),
         @ApiResponse(responseCode = "403", description = "Acesso negado"),
         @ApiResponse(responseCode = "404", description = "Pet não encontrado")
     })
+    @SecurityRequirement(name = "bearer-key")
     public ResponseEntity<Void> markAsAdopted(
-            @PathVariable String id,
+            @Parameter(description = "ID do pet") @PathVariable String id,
             @AuthenticationPrincipal UserDetails userDetails) {
         
-        String userId = getUserId(userDetails);
-        petService.marcarComoAdotado(id, userId);
+        petService.marcarComoAdotado(id, userDetails.getUsername());
         return ResponseEntity.ok().build();
     }
     
-    @PatchMapping("/{id}/status/disponivel")
-    @Operation(summary = "Marcar como disponível", description = "Marca um pet como disponível para adoção")
-    @SecurityRequirement(name = "bearer-token")
+    @PatchMapping("/{id}/disponibilizar")
+    @Operation(summary = "Marcar pet como disponível", description = "Marca um pet como disponível para adoção")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Status atualizado com sucesso"),
         @ApiResponse(responseCode = "401", description = "Não autorizado"),
         @ApiResponse(responseCode = "403", description = "Acesso negado"),
         @ApiResponse(responseCode = "404", description = "Pet não encontrado")
     })
+    @SecurityRequirement(name = "bearer-key")
     public ResponseEntity<Void> markAsAvailable(
-            @PathVariable String id,
+            @Parameter(description = "ID do pet") @PathVariable String id,
             @AuthenticationPrincipal UserDetails userDetails) {
         
-        String userId = getUserId(userDetails);
-        petService.marcarComoDisponivel(id, userId);
+        petService.marcarComoDisponivel(id, userDetails.getUsername());
         return ResponseEntity.ok().build();
     }
     
-    @PatchMapping("/{id}/status/indisponivel")
-    @Operation(summary = "Marcar como indisponível", description = "Marca um pet como indisponível")
-    @SecurityRequirement(name = "bearer-token")
+    @PatchMapping("/{id}/indisponibilizar")
+    @Operation(summary = "Marcar pet como indisponível", description = "Marca um pet como temporariamente indisponível")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Status atualizado com sucesso"),
         @ApiResponse(responseCode = "401", description = "Não autorizado"),
         @ApiResponse(responseCode = "403", description = "Acesso negado"),
         @ApiResponse(responseCode = "404", description = "Pet não encontrado")
     })
+    @SecurityRequirement(name = "bearer-key")
     public ResponseEntity<Void> markAsUnavailable(
-            @PathVariable String id,
+            @Parameter(description = "ID do pet") @PathVariable String id,
             @AuthenticationPrincipal UserDetails userDetails) {
         
-        String userId = getUserId(userDetails);
-        petService.marcarComoIndisponivel(id, userId);
+        petService.marcarComoIndisponivel(id, userDetails.getUsername());
         return ResponseEntity.ok().build();
     }
     
-    @GetMapping("/metadata/especies")
+    @GetMapping("/especies")
     @Operation(summary = "Listar espécies", description = "Lista todas as espécies disponíveis")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Lista de espécies")
+        @ApiResponse(responseCode = "200", description = "Lista de espécies retornada com sucesso")
     })
-    public ResponseEntity<List<Especie>> getEspecies() {
-        return ResponseEntity.ok(petService.getAvailableEspecies());
+    public ResponseEntity<List<Especie>> getAvailableSpecies() {
+        List<Especie> especies = petService.getAvailableEspecies();
+        return ResponseEntity.ok(especies);
     }
     
-    @GetMapping("/metadata/portes")
+    @GetMapping("/portes")
     @Operation(summary = "Listar portes", description = "Lista todos os portes disponíveis")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Lista de portes")
+        @ApiResponse(responseCode = "200", description = "Lista de portes retornada com sucesso")
     })
-    public ResponseEntity<List<Porte>> getPortes() {
-        return ResponseEntity.ok(petService.getAvailablePortes());
+    public ResponseEntity<List<Porte>> getAvailableSizes() {
+        List<Porte> portes = petService.getAvailablePortes();
+        return ResponseEntity.ok(portes);
     }
     
-    @GetMapping("/metadata/generos")
+    @GetMapping("/generos")
     @Operation(summary = "Listar gêneros", description = "Lista todos os gêneros disponíveis")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Lista de gêneros")
+        @ApiResponse(responseCode = "200", description = "Lista de gêneros retornada com sucesso")
     })
-    public ResponseEntity<List<Genero>> getGeneros() {
-        return ResponseEntity.ok(petService.getAvailableGeneros());
+    public ResponseEntity<List<Genero>> getAvailableGenders() {
+        List<Genero> generos = petService.getAvailableGeneros();
+        return ResponseEntity.ok(generos);
     }
     
-    @GetMapping("/metadata/racas")
-    @Operation(summary = "Listar raças", description = "Lista todas as raças cadastradas")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Lista de raças")
-    })
-    public ResponseEntity<List<String>> getRacas() {
-        return ResponseEntity.ok(petService.getAvailableRacas());
-    }
-    
-    private String getUserId(UserDetails userDetails) {
-        if (userDetails == null) {
-            throw new BusinessException(ErrorCode.AUTHENTICATION_REQUIRED);
-        }
-        return userDetails.getUsername(); // Assuming username is the user ID
-    }
-    
-    private boolean hasFilters(Especie especie, Genero genero, Porte porte, 
-                              Integer idadeMinima, Integer idadeMaxima, String raca) {
-        return especie != null || genero != null || porte != null || 
-               idadeMinima != null || idadeMaxima != null || 
-               (raca != null && !raca.trim().isEmpty());
+    private boolean hasFilters(Especie especie, Porte porte, Genero genero, 
+                              Integer idadeMinima, Integer idadeMaxima, String responsavelId) {
+        return especie != null || porte != null || genero != null || 
+               idadeMinima != null || idadeMaxima != null || responsavelId != null;
     }
 }

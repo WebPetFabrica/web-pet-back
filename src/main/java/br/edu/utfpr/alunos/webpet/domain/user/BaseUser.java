@@ -30,8 +30,6 @@ import lombok.Setter;
  *   <li>Abstract methods enforce polymorphic behavior</li>
  * </ul>
  * 
- * @author WebPet Team
- * @since 1.0.0
  */
 @MappedSuperclass
 @Getter

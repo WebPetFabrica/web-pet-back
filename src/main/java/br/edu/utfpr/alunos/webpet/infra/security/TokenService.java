@@ -24,8 +24,6 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
  *   <li>Subject contains user email</li>
  * </ul>
  * 
- * @author WebPet Team
- * @since 1.0.0
  */
 @Service
 public class TokenService {
