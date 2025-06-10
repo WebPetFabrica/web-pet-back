@@ -1,198 +1,161 @@
-# WebPet 🐾
+# **WebPet Backend 🐾**
 
-Aplicação para gerenciamento de adoção de animais desenvolvida com Spring Boot.
+[](https://www.oracle.com/java/technologies/javase/jdk21-archive-downloads.html)
+[](https://spring.io/projects/spring-boot)
+[](https://www.google.com/search?q=pom.xml)
+[](https://www.google.com/search?q=%23-destaques-de-seguran%C3%A7a)
+[](https://www.google.com/search?q=LICENSE)
 
-## 📚 Descrição
+Backend robusto para a plataforma de adoção de animais WebPet. Desenvolvido com Java 21 e Spring Boot, o projeto oferece uma API RESTful completa, segura e performática para gerenciar usuários, pets para adoção e doações.
 
-Este projeto tem como objetivo centralizar e facilitar o processo de adoção de animais, oferecendo uma plataforma confiável, atualizada e de fácil acesso. Ele disponibiliza funcionalidades para cadastro, autenticação e gerenciamento de usuários, além de permitir a visualização e administração dos animais disponíveis para adoção.
+## ✨ **Funcionalidades Principais**
 
-## 🏗️ Arquitetura
+  * **Sistema Multi-Usuário:** Suporte para três tipos de perfis com papéis distintos:
+      * `USER`: Adotantes em busca de um pet.
+      * `ONG`: Organizações que gerenciam múltiplos animais.
+      * `PROTETOR`: Protetores independentes.
+  * **Gerenciamento Completo de Pets:** CRUD completo para animais, incluindo detalhes como espécie, raça, porte, gênero, idade e status de adoção.
+  * **Busca e Filtragem Avançada:** API de listagem de pets com filtros por espécie, porte, gênero, idade e busca por texto livre.
+  * **Sistema de Doações:** Endpoint para receber doações destinadas a ONGs e Protetores.
+  * **Autenticação e Autorização:** Sistema seguro baseado em `JWT` com controle de acesso por papel.
+  * **Documentação de API:** Documentação interativa e automatizada com SpringDoc (OpenAPI 3).
 
-### Decisões Arquiteturais
+## 🏗️ **Arquitetura do Sistema**
 
-- **Herança Table Per Class**: Estratégia de herança para usuários (User, ONG, Protetor)
-- **UUID como Primary Key**: Melhor escalabilidade e segurança
-- **Soft Delete**: Flag `active` para preservar dados de auditoria
-- **JWT Authentication**: Tokens com expiração de 2 horas
-- **BCrypt Password Encoding**: Criptografia robusta para senhas
-- **Rate Limiting**: Proteção contra ataques de força bruta
-- **Correlation ID**: Rastreamento de requisições para logs
+O projeto adota uma **Arquitetura em Camadas (Layered Architecture)**, promovendo separação de responsabilidades, alta coesão e baixo acoplamento entre os componentes.
 
-### Regras de Negócio
+```
+┌───────────────────┐
+│  Controllers (API)│  ← Camada de Apresentação (REST)
+├───────────────────┤
+│  Services         │  ← Camada de Negócio e Lógica
+├───────────────────┤
+│  Repositories     │  ← Camada de Acesso a Dados (JPA)
+├───────────────────┤
+│  Domain (Entities)│  ← Camada de Domínio
+└───────────────────┘
+```
 
-#### Autenticação
-- Email único entre todos os tipos de usuário
-- CNPJ único para ONGs
-- CPF único para Protetores
-- Bloqueio após 5 tentativas de login falhas
-- Lockout de 30 minutos após bloqueio
+Esta estrutura é suportada por um módulo de `infra`, que contém componentes transversais como segurança, configuração e tratamento de exceções.
 
-#### Usuários
-- Soft delete preserva dados para auditoria
-- Timestamps automáticos (created_at, updated_at)
-- Validação de CPF/CNPJ via anotações customizadas
+## 🛠️ **Tech Stack**
 
-## 🚀 Tecnologias Utilizadas
+| Categoria | Tecnologia | Propósito |
+| :--- | :--- | :--- |
+| **Linguagem & Framework** | Java 21 & Spring Boot 3.4.5 | Core da aplicação |
+| **Segurança** | Spring Security, JWT (java-jwt) | Autenticação, autorização e segurança de endpoints |
+| **Acesso a Dados** | Spring Data JPA, Hibernate | Persistência de dados e ORM |
+| **Banco de Dados** | PostgreSQL (Produção), H2 (Desenvolvimento/Testes) | Armazenamento de dados relacional |
+| **Migrações de BD** | Flyway | Versionamento e controle do schema do banco de dados |
+| **Documentação da API**| SpringDoc (OpenAPI 3) | Geração de documentação interativa da API |
+| **Mapeamento de DTOs** | MapStruct | Mapeamento de objetos entre camadas (Entidade ↔ DTO) |
+| **Validação** | Hibernate Validator | Validação de dados de entrada |
+| **Cache** | Caffeine | Cache em memória para alta performance |
+| **Containerização** | Docker, Docker Compose | Empacotamento e orquestração de ambientes |
 
-### ✅ Back-end (Java + Spring Boot)
+## 🔒 **Destaques de Segurança**
 
-- **Java 21** - Linguagem principal do projeto
-- **Spring Boot 3.4.5** - Framework principal
-- **Spring Web** - APIs REST
-- **Spring Security** - Autenticação e autorização
-- **Spring Data JPA** - Acesso ao banco de dados
-- **PostgreSQL** - Banco de dados principal
-- **JWT (Auth0)** - Tokens de autenticação
-- **MapStruct** - Mapeamento de DTOs
-- **SpringDoc OpenAPI** - Documentação da API
+A segurança é um pilar fundamental deste projeto.
 
-### 🧪 Testes
+  * **Autenticação Robusta:** Implementação de JWT com expiração e validação.
+  * **Hashing de Senhas:** As senhas são protegidas usando o algoritmo BCrypt.
+  * **Políticas de Senha:** Validação de complexidade e checagem contra senhas comuns.
+  * **Histórico de Senhas:** Prevenção de reuso das últimas 5 senhas.
+  * **Proteção contra Brute-Force:** Limite de tentativas de login com bloqueio temporário de conta.
+  * **Rate Limiting:** Controle de requisições por IP para evitar abuso da API.
+  * **Logging de Auditoria:** Logs detalhados para eventos de segurança e autenticação.
 
-- **Spring Boot Starter Test** - Testes unitários e integração
-- **H2 Database** - Banco em memória para testes
+## 📖 **Documentação da API (Swagger)**
 
-### 💻 Desenvolvimento
+A documentação completa e interativa da API está disponível via Swagger UI. Após iniciar a aplicação, acesse:
 
-- **Spring Boot DevTools** - Hot reload
-- **Lombok** - Redução de boilerplate
+**http://localhost:8081/swagger-ui.html**
 
-## 📖 Documentação da API
+## ⚙️ **Configuração e Execução**
 
-### Swagger UI
-- **URL**: http://localhost:8081/swagger-ui.html
-- **OpenAPI JSON**: http://localhost:8081/api-docs
+### **Pré-requisitos**
 
-### Endpoints Principais
+  * Java 21
+  * Maven 3.9+
+  * Docker e Docker Compose (Recomendado)
 
-#### Autenticação
-- `POST /auth/login` - Login universal
-- `POST /auth/register` - Cadastro usuário comum
-- `POST /auth/register/ong` - Cadastro ONG
-- `POST /auth/register/protetor` - Cadastro protetor
+### **Variáveis de Ambiente**
 
-#### Usuário (Autenticado)
-- `GET /user` - Perfil atual
-- `GET /user/{id}` - Usuário por ID
-- `PATCH /user/deactivate` - Desativar conta
-- `PATCH /user/activate` - Ativar conta
-
-## ⚙️ Configuração do Projeto
-
-### Pré-requisitos
-
-- Java 21
-- PostgreSQL
-- Maven
-- Docker (opcional)
-
-### Variáveis de Ambiente
+Crie um arquivo `.env` na raiz do projeto com o seguinte conteúdo. Use o script `generate-jwt-secret.sh` para criar uma chave segura.
 
 ```bash
-# Banco de dados
-SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/webpet_db
-SPRING_DATASOURCE_USERNAME=postgres
-SPRING_DATASOURCE_PASSWORD=postgres
+# Configurações do Banco de Dados
+POSTGRES_DB=webpet_db
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres # Altere para uma senha segura em produção
 
-# Segurança
-JWT_SECRET=sua-chave-secreta-256-bits
+# Configurações da Aplicação
+APP_PORT=8081
+DB_PORT=5433
+
+# Chave Secreta para JWT (Use o script ./generate-jwt-secret.sh)
+JWT_SECRET=sua-chave-secreta-super-segura-de-pelo-menos-64-caracteres-hexadecimais
 
 # CORS
-CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+CORS_ALLOWED_ORIGINS=http://localhost:3000
 ```
 
-### Clonando o Repositório
+### **Como Executar**
+
+#### **1. Com Docker (Recomendado)**
+
+Este é o método mais simples e não requer instalação local do Java ou PostgreSQL.
 
 ```bash
-git clone https://github.com/WebPetFabrica/web-pet-back.git
-cd web-pet-back
+docker compose up --build -d
 ```
 
-## 🚀 Execução
+A aplicação estará disponível em `http://localhost:8081`.
 
-### Local com Maven
+#### **2. Localmente com Maven**
+
+Se você tiver o Java 21 e o Maven configurados localmente.
+
 ```bash
+# Inicie um banco de dados PostgreSQL (pode ser via Docker)
+docker run --name postgres-webpet -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:15
+
+# Execute a aplicação
 ./mvnw spring-boot:run
 ```
 
-### Com Docker
-```bash
-docker compose up -d
-```
+## 🧪 **Testes**
 
-## 📋 Estrutura do Projeto
-
-```
-src/main/java/br/edu/utfpr/alunos/webpet/
-├── controllers/              # REST Controllers
-├── domain/                   # Entidades de domínio
-│   └── user/                # Hierarquia de usuários
-├── dto/                     # Data Transfer Objects
-│   ├── auth/               # DTOs de autenticação
-│   └── user/               # DTOs de usuário
-├── infra/                  # Infraestrutura
-│   ├── config/            # Configurações
-│   ├── exception/         # Tratamento de exceções
-│   ├── logging/           # Sistema de logs
-│   ├── openapi/           # Documentação OpenAPI
-│   ├── security/          # Configurações de segurança
-│   └── validation/        # Validadores customizados
-├── mapper/                # MapStruct mappers
-├── repositories/          # Repositórios JPA
-└── services/             # Serviços de negócio
-    ├── auth/             # Serviços de autenticação
-    ├── cache/            # Serviços de cache
-    └── user/             # Serviços de usuário
-```
-
-## 🧪 Testes
+Para garantir a qualidade e a estabilidade do código, execute a suíte de testes automatizados.
 
 ```bash
-# Executar todos os testes
-./mvnw test
-
-# Executar testes com coverage
-./mvnw test jacoco:report
+./mvnw clean test
 ```
 
-## 📊 Monitoramento
+O script `validate-pr.sh` também executa a limpeza, compilação e os testes, simulando um ambiente de CI.
 
-### Logs
-- Correlation ID para rastreamento
-- Structured logging com Logback
-- Diferentes níveis por ambiente
+## 📁 **Estrutura do Projeto**
 
-### Cache
-- Redis para cache distribuído
-- Métricas de hit/miss ratio
-- TTL configurável por tipo de cache
-
-### Segurança
-- Rate limiting configurável
-- Audit logs para autenticação
-- Monitoramento de tentativas de login
-
-## 🤝 Contribuição
-
-1. Fork o projeto
-2. Crie uma feature branch (`git checkout -b feature/nova-funcionalidade`)
-3. Commit suas mudanças (`git commit -m 'Add nova funcionalidade'`)
-4. Push para a branch (`git push origin feature/nova-funcionalidade`)
-5. Abra um Pull Request
-
-## 📝 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
-## 👥 Equipe
-
-**Definições e Acordos**
-* Papéis definidos:
-   * **PO**: Anna Hellen A. Moura
-   * **Líder Técnico**: Juliano Araujo e Rodrigo Fries
-   * **Desenvolvedores**: Juliano Araujo, Rodrigo Fries, Victor Galvão, Gabriel Guarnieri, Ana Clara Santana
-   * **QA / Testes**: Gabriela Barbieri
-   * **UX/UI**: Luis Henrique
-
----
-
-Para mais informações, consulte a [documentação da API](http://localhost:8081/swagger-ui.html) ou os [guias do Spring Boot](https://spring.io/guides).
+```
+.
+├── src
+│   ├── main
+│   │   ├── java/br/edu/utfpr/alunos/webpet
+│   │   │   ├── controllers/       # Endpoints da API REST
+│   │   │   ├── domain/            # Entidades JPA (User, Pet, etc.)
+│   │   │   ├── dto/               # Objetos de Transferência de Dados
+│   │   │   ├── infra/             # Infraestrutura (Segurança, Config, Exceções)
+│   │   │   ├── mapper/            # Mapeadores (MapStruct)
+│   │   │   ├── repositories/      # Interfaces do Spring Data JPA
+│   │   │   └── services/          # Lógica de negócio
+│   │   └── resources
+│   │       ├── db/migration/      # Scripts de migração (Flyway)
+│   │       ├── application.properties
+│   │       └── logback-spring.xml # Configuração de logs
+│   └── test/                    # Testes unitários e de integração
+├── .dockerignore
+├── .gitignore
+├── docker-compose.yml
+├── pom.xml                      # Dependências e build do projeto
+└── README.md
+```
