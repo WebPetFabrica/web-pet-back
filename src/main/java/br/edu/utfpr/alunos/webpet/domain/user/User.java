@@ -1,6 +1,7 @@
 package br.edu.utfpr.alunos.webpet.domain.user;
 
 
+import br.edu.utfpr.alunos.webpet.utils.enums.UserType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,8 +19,13 @@ public class User {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     private String name;
-    private String surname;
     private String email;
+    private String phone;
+    private String cpf;
+    private String cnpj;
+
+    @Enumerated(EnumType.STRING)
+    private UserType userType;
     private String password;
 
 }
