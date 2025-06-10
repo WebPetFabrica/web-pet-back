@@ -3,8 +3,8 @@ WORKDIR /app
 COPY . .
 RUN mvn clean package -DskipTests
 
-FROM oraclelinux
+FROM amazoncorretto
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
-EXPOSE 8081
+EXPOSE 8082
 ENTRYPOINT ["java", "-jar", "app.jar"]
