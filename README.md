@@ -4,7 +4,7 @@ Aplicação para gerenciamento de adoção de animais desenvolvida com Spring Bo
 
 ## 📚 Descrição
 
-Este projeto tem como objetivo centralizar e facilitar o processo de adoção de animais, oferecendo uma plataforma confiável, atualizada e de fácil acesso. Ele disponibiliza funcionalidades para cadastro, autenticação e gerenciamento de usuários, além de permitir a visualização e administração dos animais disponíveis para adoção. A iniciativa busca resolver a dificuldade enfrentada por muitas pessoas em encontrar informações organizadas sobre pets para adoção, superando a atual dependência de contatos informais com ONGs ou lares temporários por meio de redes sociais ou aplicativos de mensagens, que tornam o processo lento e ineficiente.
+Este projeto tem como objetivo facilitar o processo de adoção de animais, oferecendo funcionalidades para cadastro, gerenciamento e autenticação de usuários, além de visualização e administração dos animais disponíveis para adoção.
 
 ## 🚀 Tecnologias Utilizadas
 
@@ -80,3 +80,35 @@ git clone https://github.com/WebPetFabrica/web-pet-back.git
 
 ## 🐳 Com Docker
 Para executar o projeto com Docker, consulte as [instruções detalhadas de Docker](DOCKER.md).
+
+## 🔑 API de Autenticação
+
+A API oferece endpoints para registro e login de usuários. Exemplos de JSON para essas operações estão disponíveis na pasta `src/main/resources/`.
+
+### Registro de Usuário
+
+**Endpoint:** `POST /auth/register`
+
+Exemplos de JSON para registro:
+- [Usuário Físico](src/main/resources/requestUsers/register-example.json)
+- [Usuário Jurídico](src/main/resources/requestUsers/register-juridico-example.json)
+- [Usuário Administrador](src/main/resources/requestUsers/register-admin-example.json)
+
+### Login de Usuário
+
+**Endpoint:** `POST /auth/login`
+
+Exemplo de JSON para login:
+- [Login](src/main/resources/requestUsers/login-example.json)
+
+### Resposta da API
+
+Após um registro ou login bem-sucedido, a API retorna:
+- [Exemplo de Resposta](src/main/resources/requestUsers/auth-response-example.json)
+
+O token retornado deve ser incluído no cabeçalho `Authorization` das requisições subsequentes como um token Bearer:
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+Para mais detalhes sobre os formatos JSON, consulte a [documentação de exemplos JSON](src/main/resources/requestUsers/json-examples.md).
