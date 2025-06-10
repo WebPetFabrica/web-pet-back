@@ -80,3 +80,35 @@ git clone https://github.com/WebPetFabrica/web-pet-back.git
 
 ## 🐳 Com Docker
 Para executar o projeto com Docker, consulte as [instruções detalhadas de Docker](DOCKER.md).
+
+## 🔑 API de Autenticação
+
+A API oferece endpoints para registro e login de usuários. Exemplos de JSON para essas operações estão disponíveis na pasta `src/main/resources/`.
+
+### Registro de Usuário
+
+**Endpoint:** `POST /auth/register`
+
+Exemplos de JSON para registro:
+- [Usuário Físico](src/main/resources/requestUsers/register-example.json)
+- [Usuário Jurídico](src/main/resources/requestUsers/register-juridico-example.json)
+- [Usuário Administrador](src/main/resources/requestUsers/register-admin-example.json)
+
+### Login de Usuário
+
+**Endpoint:** `POST /auth/login`
+
+Exemplo de JSON para login:
+- [Login](src/main/resources/requestUsers/login-example.json)
+
+### Resposta da API
+
+Após um registro ou login bem-sucedido, a API retorna:
+- [Exemplo de Resposta](src/main/resources/requestUsers/auth-response-example.json)
+
+O token retornado deve ser incluído no cabeçalho `Authorization` das requisições subsequentes como um token Bearer:
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+Para mais detalhes sobre os formatos JSON, consulte a [documentação de exemplos JSON](src/main/resources/requestUsers/json-examples.md).
