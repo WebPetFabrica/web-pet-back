@@ -4,6 +4,7 @@ import br.edu.utfpr.alunos.webpet.domain.user.Animal;
 import br.edu.utfpr.alunos.webpet.dto.AnimalDTO;
 import br.edu.utfpr.alunos.webpet.services.AnimalService;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +26,15 @@ public class AnimalController {
         AnimalDTO animal = animalService.getById(id);
         if (animal != null) {
             return ResponseEntity.ok("Request successful! Animal details: " + animal.toString());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    public ResponseEntity<String> getByName(@RequestParam String name) {
+        List<AnimalDTO> animals = animalService.getByName(name);
+        if (animals != null && !animals.isEmpty()) {
+            return ResponseEntity.ok("Request successful! Animals found: " + animals.toString());
         } else {
             return ResponseEntity.notFound().build();
         }

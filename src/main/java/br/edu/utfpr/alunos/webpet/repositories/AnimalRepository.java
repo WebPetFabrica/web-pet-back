@@ -12,7 +12,7 @@ public interface AnimalRepository extends JpaRepository<Animal, String> {
     AnimalDTO save(AnimalDTO dto);
     List<Animal> findAll();
     Optional<Animal> findById(String id);
-    List<AnimalDTO> findByName(String name);
+    List<Animal> findByName(String name);
     List<AnimalDTO> findByDescription(String description);
     List<AnimalDTO> findByCategory(String category);
     List<AnimalDTO> findByStatus(String status);
