@@ -43,4 +43,17 @@ public class AnimalService {
                 animal.getStatus()
         );
     }
+
+    public List<AnimalDTO> getByName(String name) {
+        List<Animal> animals = animalRepository.findByName(name);
+        return animals.stream()
+                .map(animal -> new AnimalDTO(
+                        animal.getId(),
+                        animal.getName(),
+                        animal.getDescription(),
+                        animal.getCategory(),
+                        animal.getStatus()
+                ))
+                .toList();
+    }
 }
