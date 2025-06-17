@@ -1,7 +1,6 @@
 package br.edu.utfpr.alunos.webpet.services;
 
 import br.edu.utfpr.alunos.webpet.domain.user.Animal;
-import br.edu.utfpr.alunos.webpet.domain.user.User;
 import br.edu.utfpr.alunos.webpet.dto.AnimalDTO;
 import br.edu.utfpr.alunos.webpet.dto.ResponseDTO;
 import br.edu.utfpr.alunos.webpet.repositories.AnimalRepository;
