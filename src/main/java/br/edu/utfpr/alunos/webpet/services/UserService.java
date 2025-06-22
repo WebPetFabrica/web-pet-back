@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    private final AnimalRepository animalRepository;
     private final UserRepository userRepository;
 
     public User getUserByEmail(String email) {
@@ -27,25 +26,6 @@ public class UserService {
                 user.getCnpj(),
                 user.getUserType(),
                 user.getPassword()
-        );
-    }
-
-    public AnimalDTO createAnimal(AnimalDTO dto) {
-        var animal = new Animal();
-        // Ajuste conforme os nomes reais dos métodos ou campos de AnimalDTO
-        animal.setId(dto.id());
-        animal.setName(dto.name());
-        animal.setDescription(dto.description());
-        animal.setCategory(dto.category());
-        animal.setStatus(dto.status());
-
-        var saved = animalRepository.save(animal);
-        return new AnimalDTO(
-                saved.getId(),
-                saved.getName(),
-                saved.getDescription(),
-                saved.getCategory(),
-                saved.getStatus()
         );
     }
 }
