@@ -1,7 +1,7 @@
 package br.edu.utfpr.alunos.webpet.domain.user;
 
-
-import br.edu.utfpr.alunos.webpet.utils.enums.UserType;
+import br.edu.utfpr.alunos.webpet.utils.enums.CategoryType;
+import br.edu.utfpr.alunos.webpet.utils.enums.StatusType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,23 +9,23 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class User {
+@Table(name = "animals")
+public class Animal {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
+
     private String name;
-    private String email;
-    private String phone;
-    private String cpf;
-    private String cnpj;
+
+    private String description;
 
     @Enumerated(EnumType.STRING)
-    private UserType userType;
-    private String password;
+    private CategoryType category;
 
+    @Enumerated(EnumType.STRING)
+    private StatusType status;
 }
