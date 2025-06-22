@@ -4,7 +4,7 @@ Aplicação para gerenciamento de adoção de animais desenvolvida com Spring Bo
 
 ## 📚 Descrição
 
-Este projeto tem como objetivo centralizar e facilitar o processo de adoção de animais, oferecendo uma plataforma confiável, atualizada e de fácil acesso. Ele disponibiliza funcionalidades para cadastro, autenticação e gerenciamento de usuários, além de permitir a visualização e administração dos animais disponíveis para adoção. A iniciativa busca resolver a dificuldade enfrentada por muitas pessoas em encontrar informações organizadas sobre pets para adoção, superando a atual dependência de contatos informais com ONGs ou lares temporários por meio de redes sociais ou aplicativos de mensagens, que tornam o processo lento e ineficiente.
+Este projeto tem como objetivo facilitar o processo de adoção de animais, oferecendo funcionalidades para cadastro, gerenciamento e autenticação de usuários, além de visualização e administração dos animais disponíveis para adoção.
 
 ## 🚀 Tecnologias Utilizadas
 
