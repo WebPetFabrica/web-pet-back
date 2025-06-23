@@ -3,8 +3,9 @@ package br.edu.utfpr.alunos.webpet.controllers;
 import br.edu.utfpr.alunos.webpet.domain.user.User;
 import br.edu.utfpr.alunos.webpet.dto.ResponseDTO;
 import br.edu.utfpr.alunos.webpet.repositories.UserRepository;
+import br.edu.utfpr.alunos.webpet.services.UserService;
+import br.edu.utfpr.alunos.webpet.utils.enums.UserType;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserController {
     private final UserRepository userRepository;
+    private final UserService userService;
 
     @GetMapping("/users")
     public ResponseEntity<ResponseDTO> getUsers() {
@@ -37,5 +39,12 @@ public class UserController {
 
         Map<String, Object> data = Map.of("users", users);
         return ResponseEntity.ok(ResponseDTO.success("Lista de usuários obtida com sucesso", data));
+    }
+
+    @GetMapping("/ongs")
+    public ResponseEntity<ResponseDTO> getAllByUserType() {
+        List<Map<String, String>> ongsData = userService.getAllOngs();
+        Map<String, Object> data = Map.of("ongs", ongsData);
+        return ResponseEntity.ok(ResponseDTO.success("Lista de ONGs obtida com sucesso", data));
     }
 }
