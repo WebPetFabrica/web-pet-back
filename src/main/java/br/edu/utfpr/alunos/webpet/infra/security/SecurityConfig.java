@@ -32,6 +32,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
+                        .requestMatchers(HttpMethod.GET, "user/ongs").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/animal/animals").permitAll()
                         // TODO: Em ambiente de produção, restringir adequadamente os endpoints
                         // e adicionar CSRF protection para rotas não-API
                         .anyRequest().authenticated()
