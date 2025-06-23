@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import br.edu.utfpr.alunos.webpet.infra.validation.ValidEmail;
 import br.edu.utfpr.alunos.webpet.infra.validation.ValidPassword;
 
-public record RegisterRequestDTO(
+public record UserRegisterDTO(
     @NotBlank(message = "Nome é obrigatório")
     String name,
     

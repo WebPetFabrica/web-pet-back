@@ -4,7 +4,7 @@ import br.edu.utfpr.alunos.webpet.dto.auth.AuthResponseDTO;
 import br.edu.utfpr.alunos.webpet.dto.auth.LoginRequestDTO;
 import br.edu.utfpr.alunos.webpet.dto.auth.ONGRegisterDTO;
 import br.edu.utfpr.alunos.webpet.dto.auth.ProtetorRegisterDTO;
-import br.edu.utfpr.alunos.webpet.dto.auth.RegisterRequestDTO;
+import br.edu.utfpr.alunos.webpet.dto.auth.UserRegisterDTO;
 import br.edu.utfpr.alunos.webpet.services.auth.AuthenticationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -31,8 +31,8 @@ public class AuthController {
     private final AuthenticationService authenticationService;
 
     @Operation(
-        summary = "Realizar login",
-        description = "Autentica um usuário no sistema e retorna um token JWT"
+        summary = "Login de usuário comum",
+        description = "Autentica um usuário comum no sistema e retorna um token JWT"
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -65,40 +65,22 @@ public class AuthController {
                         "message": "Credenciais inválidas",
                         "code": "AUTH_INVALID_CREDENTIALS",
                         "timestamp": "2025-06-04T10:30:00Z",
-                        "path": "/auth/login"
-                    }
-                    """
-                )
-            )
-        ),
-        @ApiResponse(
-            responseCode = "429",
-            description = "Muitas tentativas de login",
-            content = @Content(
-                mediaType = "application/json",
-                examples = @ExampleObject(
-                    name = "Conta bloqueada",
-                    value = """
-                    {
-                        "message": "Conta temporariamente bloqueada devido a muitas tentativas de login",
-                        "code": "AUTH_ACCOUNT_LOCKED",
-                        "timestamp": "2025-06-04T10:30:00Z",
-                        "path": "/auth/login"
+                        "path": "/auth/login/user"
                     }
                     """
                 )
             )
         )
     })
-    @PostMapping("/login")
-    public ResponseEntity<AuthResponseDTO> login(
+    @PostMapping("/login/user")
+    public ResponseEntity<AuthResponseDTO> loginUser(
             @Valid @RequestBody 
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                description = "Dados de login do usuário",
+                description = "Dados de login do usuário comum",
                 required = true,
                 content = @Content(
                     examples = @ExampleObject(
-                        name = "Login exemplo",
+                        name = "Login usuário",
                         value = """
                         {
                             "email": "usuario@exemplo.com",
@@ -110,12 +92,112 @@ public class AuthController {
             ) LoginRequestDTO loginDTO) {
         
         String correlationId = MDC.get("correlationId");
-        log.info("Login request received for email: {} [correlationId: {}]", 
+        log.info("User login request received for email: {} [correlationId: {}]", 
             loginDTO.email(), correlationId);
         
-        AuthResponseDTO response = authenticationService.login(loginDTO);
+        AuthResponseDTO response = authenticationService.loginUser(loginDTO);
         
-        log.info("Login successful for email: {} [correlationId: {}]", 
+        log.info("User login successful for email: {} [correlationId: {}]", 
+            loginDTO.email(), correlationId);
+        
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(
+        summary = "Login de ONG",
+        description = "Autentica uma ONG no sistema e retorna um token JWT"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Login realizado com sucesso",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = AuthResponseDTO.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Credenciais inválidas",
+            content = @Content(mediaType = "application/json")
+        )
+    })
+    @PostMapping("/login/ong")
+    public ResponseEntity<AuthResponseDTO> loginONG(
+            @Valid @RequestBody 
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "Dados de login da ONG",
+                required = true,
+                content = @Content(
+                    examples = @ExampleObject(
+                        name = "Login ONG",
+                        value = """
+                        {
+                            "email": "contato@ongamigos.org",
+                            "password": "senhaong123"
+                        }
+                        """
+                    )
+                )
+            ) LoginRequestDTO loginDTO) {
+        
+        String correlationId = MDC.get("correlationId");
+        log.info("ONG login request received for email: {} [correlationId: {}]", 
+            loginDTO.email(), correlationId);
+        
+        AuthResponseDTO response = authenticationService.loginOng(loginDTO);
+        
+        log.info("ONG login successful for email: {} [correlationId: {}]", 
+            loginDTO.email(), correlationId);
+        
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(
+        summary = "Login de protetor",
+        description = "Autentica um protetor no sistema e retorna um token JWT"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Login realizado com sucesso",
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = AuthResponseDTO.class)
+            )
+        ),
+        @ApiResponse(
+            responseCode = "401",
+            description = "Credenciais inválidas",
+            content = @Content(mediaType = "application/json")
+        )
+    })
+    @PostMapping("/login/protetor")
+    public ResponseEntity<AuthResponseDTO> loginProtetor(
+            @Valid @RequestBody 
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                description = "Dados de login do protetor",
+                required = true,
+                content = @Content(
+                    examples = @ExampleObject(
+                        name = "Login protetor",
+                        value = """
+                        {
+                            "email": "protetor@exemplo.com",
+                            "password": "senhaprotetor123"
+                        }
+                        """
+                    )
+                )
+            ) LoginRequestDTO loginDTO) {
+        
+        String correlationId = MDC.get("correlationId");
+        log.info("Protetor login request received for email: {} [correlationId: {}]", 
+            loginDTO.email(), correlationId);
+        
+        AuthResponseDTO response = authenticationService.loginProtetor(loginDTO);
+        
+        log.info("Protetor login successful for email: {} [correlationId: {}]", 
             loginDTO.email(), correlationId);
         
         return ResponseEntity.ok(response);
@@ -140,8 +222,8 @@ public class AuthController {
             content = @Content(mediaType = "application/json")
         )
     })
-    @PostMapping("/register")
-    public ResponseEntity<AuthResponseDTO> register(
+    @PostMapping("/register/user")
+    public ResponseEntity<AuthResponseDTO> registerUser(
             @Valid @RequestBody 
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                 description = "Dados para registro de usuário comum",
@@ -158,16 +240,16 @@ public class AuthController {
                         """
                     )
                 )
-            ) RegisterRequestDTO registerDTO) {
+            ) UserRegisterDTO userDTO) {
         
         String correlationId = MDC.get("correlationId");
         log.info("User registration request received for email: {} [correlationId: {}]", 
-            registerDTO.email(), correlationId);
+            userDTO.email(), correlationId);
         
-        AuthResponseDTO response = authenticationService.registerUser(registerDTO);
+        AuthResponseDTO response = authenticationService.registerUser(userDTO);
         
         log.info("User registration successful for email: {} [correlationId: {}]", 
-            registerDTO.email(), correlationId);
+            userDTO.email(), correlationId);
         
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -217,7 +299,7 @@ public class AuthController {
         log.info("ONG registration request received for email: {} [correlationId: {}]", 
             ongDTO.email(), correlationId);
         
-        AuthResponseDTO response = authenticationService.registerONG(ongDTO);
+        AuthResponseDTO response = authenticationService.registerOng(ongDTO);
         
         log.info("ONG registration successful for email: {} [correlationId: {}]", 
             ongDTO.email(), correlationId);

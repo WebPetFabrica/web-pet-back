@@ -1,17 +1,19 @@
 package br.edu.utfpr.alunos.webpet.repositories;
 
 import java.util.Optional;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
 import br.edu.utfpr.alunos.webpet.domain.user.ONG;
 
 @Repository
-public interface ONGRepository extends BaseUserRepository<ONG> {
+public interface ONGRepository extends JpaRepository<ONG, String> {
+    Optional<ONG> findByEmail(String email);
+    boolean existsByEmail(String email);
+    Optional<ONG> findByIdAndActiveTrue(String id);
     Optional<ONG> findByCnpj(String cnpj);
     boolean existsByCnpj(String cnpj);
     

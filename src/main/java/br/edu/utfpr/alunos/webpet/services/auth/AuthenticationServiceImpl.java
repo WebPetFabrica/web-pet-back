@@ -8,7 +8,8 @@ import br.edu.utfpr.alunos.webpet.dto.auth.AuthResponseDTO;
 import br.edu.utfpr.alunos.webpet.dto.auth.LoginRequestDTO;
 import br.edu.utfpr.alunos.webpet.dto.auth.ONGRegisterDTO;
 import br.edu.utfpr.alunos.webpet.dto.auth.ProtetorRegisterDTO;
-import br.edu.utfpr.alunos.webpet.dto.auth.RegisterRequestDTO;
+import br.edu.utfpr.alunos.webpet.dto.auth.UserRegisterDTO;
+import br.edu.utfpr.alunos.webpet.domain.user.UserType;
 import br.edu.utfpr.alunos.webpet.infra.exception.*;
 import br.edu.utfpr.alunos.webpet.infra.logging.ExceptionLogger;
 import br.edu.utfpr.alunos.webpet.infra.security.TokenService;
@@ -69,15 +70,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final PasswordHistoryService passwordHistoryService;
 
     /**
-     * Authenticates a user using email and password credentials.
-     * 
-     * <p>Security features:
-     * <ul>
-     *   <li>Checks for account lockout before attempting authentication</li>
-     *   <li>Records failed attempts for brute force protection</li>
-     *   <li>Generates JWT token on successful authentication</li>
-     *   <li>Logs all authentication attempts for audit</li>
-     * </ul>
+     * Authenticates a regular user using email and password credentials.
+     * Searches specifically in the UserRepository.
      * 
      * @param loginDTO contains user credentials (email and password)
      * @return authentication response with user name, JWT token, and token type
@@ -86,50 +80,179 @@ public class AuthenticationServiceImpl implements AuthenticationService {
      * @throws SystemException when unexpected error occurs during authentication
      */
     @Override
-    public AuthResponseDTO login(LoginRequestDTO loginDTO) {
+    public AuthResponseDTO loginUser(LoginRequestDTO data) {
         String correlationId = MDC.get("correlationId");
-        log.info("Login attempt for email: {} [correlationId: {}]", loginDTO.email(), correlationId);
+        log.info("User login attempt for email: {} [correlationId: {}]", data.email(), correlationId);
         
-        // Check for account lockout to prevent brute force attacks
-        if (loginAttemptService.isBlocked(loginDTO.email())) {
-            log.warn("Login blocked for email: {} - account locked [correlationId: {}]", 
-                loginDTO.email(), correlationId);
-            exceptionLogger.logAuthenticationFailure(loginDTO.email(), "Account locked", correlationId);
-            throw new AccountLockedException(ErrorCode.AUTH_ACCOUNT_LOCKED.getMessage());
-        }
-
+        checkAccountLockout(data.email());
+        
         try {
-            // Delegate authentication to Spring Security
-            Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginDTO.email(), loginDTO.password())
-            );
+            User user = userRepository.findByEmail(data.email())
+                .orElseThrow(() -> {
+                    recordFailedAttempt(data.email(), "User not found", correlationId);
+                    return new AuthenticationException(ErrorCode.AUTH_INVALID_CREDENTIALS);
+                });
             
-            // Reset failed attempt counter on successful authentication
-            loginAttemptService.recordSuccessfulLogin(loginDTO.email());
+            validatePassword(data.password(), user.getPassword(), data.email());
+            loginAttemptService.recordSuccessfulLogin(data.email());
             
-            UserDetails userDetails = (UserDetails) auth.getPrincipal();
-            String token = tokenService.generateToken(userDetails);
-            String displayName = findDisplayNameByEmail(loginDTO.email());
+            String token = generateTokenForUser(user);
+            log.info("User login successful for email: {} [correlationId: {}]", data.email(), correlationId);
             
-            log.info("Login successful for email: {} [correlationId: {}]", loginDTO.email(), correlationId);
-            return new AuthResponseDTO(displayName, token, "Bearer");
+            return new AuthResponseDTO(user.getDisplayName(), token, "Bearer");
             
-        } catch (org.springframework.security.authentication.BadCredentialsException e) {
-            // Record failed attempt for brute force protection
-            loginAttemptService.recordFailedAttempt(loginDTO.email());
-            int remaining = loginAttemptService.getRemainingAttempts(loginDTO.email());
-            
-            log.warn("Login failed for email: {} - invalid credentials, {} attempts remaining [correlationId: {}]", 
-                loginDTO.email(), remaining, correlationId);
-            exceptionLogger.logAuthenticationFailure(loginDTO.email(), "Invalid credentials", correlationId);
-            throw new AuthenticationException(ErrorCode.AUTH_INVALID_CREDENTIALS);
-            
+        } catch (AuthenticationException e) {
+            throw e;
         } catch (Exception e) {
-            log.error("Unexpected error during login for email: {} [correlationId: {}]", 
-                loginDTO.email(), correlationId, e);
-            exceptionLogger.logSystemError("LOGIN", "Unexpected authentication error", e);
+            log.error("Unexpected error during user login for email: {} [correlationId: {}]", 
+                data.email(), correlationId, e);
+            exceptionLogger.logSystemError("USER_LOGIN", "Unexpected authentication error", e);
             throw new SystemException(ErrorCode.SYSTEM_INTERNAL_ERROR, e);
         }
+    }
+
+    /**
+     * Authenticates an ONG using email and password credentials.
+     * Searches specifically in the ONGRepository.
+     * 
+     * @param loginDTO contains ONG credentials (email and password)
+     * @return authentication response with ONG name, JWT token, and token type
+     * @throws AccountLockedException when account is temporarily locked due to failed attempts
+     * @throws AuthenticationException when credentials are invalid
+     * @throws SystemException when unexpected error occurs during authentication
+     */
+    @Override
+    public AuthResponseDTO loginOng(LoginRequestDTO data) {
+        String correlationId = MDC.get("correlationId");
+        log.info("ONG login attempt for email: {} [correlationId: {}]", data.email(), correlationId);
+        
+        checkAccountLockout(data.email());
+        
+        try {
+            ONG ong = ongRepository.findByEmail(data.email())
+                .orElseThrow(() -> {
+                    recordFailedAttempt(data.email(), "ONG not found", correlationId);
+                    return new AuthenticationException(ErrorCode.AUTH_INVALID_CREDENTIALS);
+                });
+            
+            validatePassword(data.password(), ong.getPassword(), data.email());
+            loginAttemptService.recordSuccessfulLogin(data.email());
+            
+            String token = generateTokenForUser(ong);
+            log.info("ONG login successful for email: {} [correlationId: {}]", data.email(), correlationId);
+            
+            return new AuthResponseDTO(ong.getDisplayName(), token, "Bearer");
+            
+        } catch (AuthenticationException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error during ONG login for email: {} [correlationId: {}]", 
+                data.email(), correlationId, e);
+            exceptionLogger.logSystemError("ONG_LOGIN", "Unexpected authentication error", e);
+            throw new SystemException(ErrorCode.SYSTEM_INTERNAL_ERROR, e);
+        }
+    }
+
+    /**
+     * Authenticates a Protetor using email and password credentials.
+     * Searches specifically in the ProtetorRepository.
+     * 
+     * @param loginDTO contains Protetor credentials (email and password)
+     * @return authentication response with Protetor name, JWT token, and token type
+     * @throws AccountLockedException when account is temporarily locked due to failed attempts
+     * @throws AuthenticationException when credentials are invalid
+     * @throws SystemException when unexpected error occurs during authentication
+     */
+    @Override
+    public AuthResponseDTO loginProtetor(LoginRequestDTO data) {
+        String correlationId = MDC.get("correlationId");
+        log.info("Protetor login attempt for email: {} [correlationId: {}]", data.email(), correlationId);
+        
+        checkAccountLockout(data.email());
+        
+        try {
+            Protetor protetor = protetorRepository.findByEmail(data.email())
+                .orElseThrow(() -> {
+                    recordFailedAttempt(data.email(), "Protetor not found", correlationId);
+                    return new AuthenticationException(ErrorCode.AUTH_INVALID_CREDENTIALS);
+                });
+            
+            validatePassword(data.password(), protetor.getPassword(), data.email());
+            loginAttemptService.recordSuccessfulLogin(data.email());
+            
+            String token = generateTokenForUser(protetor);
+            log.info("Protetor login successful for email: {} [correlationId: {}]", data.email(), correlationId);
+            
+            return new AuthResponseDTO(protetor.getDisplayName(), token, "Bearer");
+            
+        } catch (AuthenticationException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error during Protetor login for email: {} [correlationId: {}]", 
+                data.email(), correlationId, e);
+            exceptionLogger.logSystemError("PROTETOR_LOGIN", "Unexpected authentication error", e);
+            throw new SystemException(ErrorCode.SYSTEM_INTERNAL_ERROR, e);
+        }
+    }
+
+    /**
+     * Checks if the account is locked due to failed login attempts.
+     * 
+     * @param email the user's email
+     * @throws AccountLockedException if account is locked
+     */
+    private void checkAccountLockout(String email) {
+        if (loginAttemptService.isBlocked(email)) {
+            String correlationId = MDC.get("correlationId");
+            log.warn("Login blocked for email: {} - account locked [correlationId: {}]", email, correlationId);
+            exceptionLogger.logAuthenticationFailure(email, "Account locked", correlationId);
+            throw new AccountLockedException(ErrorCode.AUTH_ACCOUNT_LOCKED.getMessage());
+        }
+    }
+
+    /**
+     * Validates the provided password against the stored encrypted password.
+     * 
+     * @param rawPassword the raw password provided by user
+     * @param encodedPassword the stored encrypted password
+     * @param email the user's email for logging
+     * @throws AuthenticationException if password is invalid
+     */
+    private void validatePassword(String rawPassword, String encodedPassword, String email) {
+        if (!passwordEncoder.matches(rawPassword, encodedPassword)) {
+            String correlationId = MDC.get("correlationId");
+            recordFailedAttempt(email, "Invalid password", correlationId);
+            throw new AuthenticationException(ErrorCode.AUTH_INVALID_CREDENTIALS);
+        }
+    }
+
+    /**
+     * Records a failed login attempt and logs the failure.
+     * 
+     * @param email the user's email
+     * @param reason the reason for failure
+     * @param correlationId the correlation ID for logging
+     */
+    private void recordFailedAttempt(String email, String reason, String correlationId) {
+        loginAttemptService.recordFailedAttempt(email);
+        int remaining = loginAttemptService.getRemainingAttempts(email);
+        log.warn("Login failed for email: {} - {}, {} attempts remaining [correlationId: {}]", 
+            email, reason, remaining, correlationId);
+        exceptionLogger.logAuthenticationFailure(email, reason, correlationId);
+    }
+
+    /**
+     * Generates a JWT token for the authenticated user.
+     * 
+     * @param user the authenticated user
+     * @return JWT token string
+     */
+    private String generateTokenForUser(BaseUser user) {
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+            user.getEmail(), "", 
+            java.util.Collections.emptyList()
+        );
+        return tokenService.generateToken(userDetails);
     }
 
     /**
@@ -151,26 +274,26 @@ public class AuthenticationServiceImpl implements AuthenticationService {
      */
     @Override
     @Transactional
-    public AuthResponseDTO registerUser(RegisterRequestDTO registerDTO) {
+    public AuthResponseDTO registerUser(UserRegisterDTO data) {
         String correlationId = MDC.get("correlationId");
         log.info("User registration attempt for email: {} [correlationId: {}]", 
-            registerDTO.email(), correlationId);
+            data.email(), correlationId);
         
         // Validate email uniqueness across all user types
-        if (userRepository.existsByEmail(registerDTO.email())) {
+        if (userRepository.existsByEmail(data.email())) {
             log.warn("User registration failed - email already exists: {} [correlationId: {}]", 
-                registerDTO.email(), correlationId);
+                data.email(), correlationId);
             exceptionLogger.logBusinessError("USER_REGISTRATION", "Email exists", correlationId);
             throw new ValidationException(ErrorCode.USER_EMAIL_EXISTS);
         }
 
         try {
-            String encodedPassword = passwordEncoder.encode(registerDTO.password());
+            String encodedPassword = passwordEncoder.encode(data.password());
             
             // Create new user with encrypted password
             User user = User.builder()
-                .name(registerDTO.name())
-                .email(registerDTO.email())
+                .name(data.name())
+                .email(data.email())
                 .password(encodedPassword)
                 .celular("")
                 .build();
@@ -186,14 +309,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             log.debug("Email confirmation will be implemented later for user: {} [correlationId: {}]", 
                 user.getEmail(), correlationId);
             
-            String token = generateTokenForEmail(user.getEmail());
+            String token = generateTokenForUser(user);
             log.info("User registration successful for email: {} [correlationId: {}]", 
                 user.getEmail(), correlationId);
             return new AuthResponseDTO(user.getDisplayName(), token, "Bearer");
             
         } catch (Exception e) {
             log.error("User registration failed for email: {} [correlationId: {}]", 
-                registerDTO.email(), correlationId, e);
+                data.email(), correlationId, e);
             exceptionLogger.logSystemError("USER_REGISTRATION", "Database error", e);
             throw new SystemException(ErrorCode.SYSTEM_DATABASE_ERROR, e);
         }
@@ -219,36 +342,36 @@ public class AuthenticationServiceImpl implements AuthenticationService {
      */
     @Override
     @Transactional
-    public AuthResponseDTO registerONG(ONGRegisterDTO ongDTO) {
+    public AuthResponseDTO registerOng(ONGRegisterDTO data) {
         String correlationId = MDC.get("correlationId");
         log.info("ONG registration attempt for email: {} [correlationId: {}]", 
-            ongDTO.email(), correlationId);
+            data.email(), correlationId);
         
         // Validate email uniqueness
-        if (ongRepository.existsByEmail(ongDTO.email())) {
+        if (ongRepository.existsByEmail(data.email())) {
             log.warn("ONG registration failed - email already exists: {} [correlationId: {}]", 
-                ongDTO.email(), correlationId);
+                data.email(), correlationId);
             exceptionLogger.logBusinessError("ONG_REGISTRATION", "Email exists", correlationId);
             throw new ValidationException(ErrorCode.USER_EMAIL_EXISTS);
         }
         
         // Validate CNPJ uniqueness
-        if (ongRepository.existsByCnpj(ongDTO.cnpj())) {
+        if (ongRepository.existsByCnpj(data.cnpj())) {
             log.warn("ONG registration failed - CNPJ already exists: {} [correlationId: {}]", 
-                ongDTO.cnpj(), correlationId);
+                data.cnpj(), correlationId);
             exceptionLogger.logBusinessError("ONG_REGISTRATION", "CNPJ exists", correlationId);
             throw new ValidationException(ErrorCode.USER_CNPJ_EXISTS);
         }
 
         try {
-            String encodedPassword = passwordEncoder.encode(ongDTO.password());
+            String encodedPassword = passwordEncoder.encode(data.password());
             
             ONG ong = ONG.builder()
-                .cnpj(ongDTO.cnpj())
-                .nomeOng(ongDTO.nomeOng())
-                .email(ongDTO.email())
+                .cnpj(data.cnpj())
+                .nomeOng(data.nomeOng())
+                .email(data.email())
                 .password(encodedPassword)
-                .celular(ongDTO.celular())
+                .celular(data.celular())
                 .build();
             
             ong = ongRepository.save(ong);
@@ -262,14 +385,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             log.debug("Email confirmation will be implemented later for ONG: {} [correlationId: {}]", 
                 ong.getEmail(), correlationId);
             
-            String token = generateTokenForEmail(ong.getEmail());
+            String token = generateTokenForUser(ong);
             log.info("ONG registration successful for email: {} [correlationId: {}]", 
                 ong.getEmail(), correlationId);
             return new AuthResponseDTO(ong.getDisplayName(), token, "Bearer");
             
         } catch (Exception e) {
             log.error("ONG registration failed for email: {} [correlationId: {}]", 
-                ongDTO.email(), correlationId, e);
+                data.email(), correlationId, e);
             exceptionLogger.logSystemError("ONG_REGISTRATION", "Database error", e);
             throw new SystemException(ErrorCode.SYSTEM_DATABASE_ERROR, e);
         }
@@ -295,36 +418,36 @@ public class AuthenticationServiceImpl implements AuthenticationService {
      */
     @Override
     @Transactional
-    public AuthResponseDTO registerProtetor(ProtetorRegisterDTO protetorDTO) {
+    public AuthResponseDTO registerProtetor(ProtetorRegisterDTO data) {
         String correlationId = MDC.get("correlationId");
         log.info("Protetor registration attempt for email: {} [correlationId: {}]", 
-            protetorDTO.email(), correlationId);
+            data.email(), correlationId);
         
         // Validate email uniqueness
-        if (protetorRepository.existsByEmail(protetorDTO.email())) {
+        if (protetorRepository.existsByEmail(data.email())) {
             log.warn("Protetor registration failed - email already exists: {} [correlationId: {}]", 
-                protetorDTO.email(), correlationId);
+                data.email(), correlationId);
             exceptionLogger.logBusinessError("PROTETOR_REGISTRATION", "Email exists", correlationId);
             throw new ValidationException(ErrorCode.USER_EMAIL_EXISTS);
         }
         
         // Validate CPF uniqueness
-        if (protetorRepository.existsByCpf(protetorDTO.cpf())) {
+        if (protetorRepository.existsByCpf(data.cpf())) {
             log.warn("Protetor registration failed - CPF already exists: {} [correlationId: {}]", 
-                protetorDTO.cpf(), correlationId);
+                data.cpf(), correlationId);
             exceptionLogger.logBusinessError("PROTETOR_REGISTRATION", "CPF exists", correlationId);
             throw new ValidationException(ErrorCode.USER_CPF_EXISTS);
         }
 
         try {
-            String encodedPassword = passwordEncoder.encode(protetorDTO.password());
+            String encodedPassword = passwordEncoder.encode(data.password());
             
             Protetor protetor = Protetor.builder()
-                .cpf(protetorDTO.cpf())
-                .nomeCompleto(protetorDTO.nomeCompleto())
-                .email(protetorDTO.email())
+                .cpf(data.cpf())
+                .nomeCompleto(data.nomeCompleto())
+                .email(data.email())
                 .password(encodedPassword)
-                .celular(protetorDTO.celular())
+                .celular(data.celular())
                 .build();
             
             protetor = protetorRepository.save(protetor);
@@ -338,18 +461,19 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             log.debug("Email confirmation will be implemented later for Protetor: {} [correlationId: {}]", 
                 protetor.getEmail(), correlationId);
             
-            String token = generateTokenForEmail(protetor.getEmail());
+            String token = generateTokenForUser(protetor);
             log.info("Protetor registration successful for email: {} [correlationId: {}]", 
                 protetor.getEmail(), correlationId);
             return new AuthResponseDTO(protetor.getDisplayName(), token, "Bearer");
             
         } catch (Exception e) {
             log.error("Protetor registration failed for email: {} [correlationId: {}]", 
-                protetorDTO.email(), correlationId, e);
+                data.email(), correlationId, e);
             exceptionLogger.logSystemError("PROTETOR_REGISTRATION", "Database error", e);
             throw new SystemException(ErrorCode.SYSTEM_DATABASE_ERROR, e);
         }
     }
+
 
     /**
      * Finds the display name for a user by email address.

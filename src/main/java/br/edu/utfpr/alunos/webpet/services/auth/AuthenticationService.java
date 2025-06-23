@@ -4,11 +4,13 @@ import br.edu.utfpr.alunos.webpet.dto.auth.AuthResponseDTO;
 import br.edu.utfpr.alunos.webpet.dto.auth.LoginRequestDTO;
 import br.edu.utfpr.alunos.webpet.dto.auth.ONGRegisterDTO;
 import br.edu.utfpr.alunos.webpet.dto.auth.ProtetorRegisterDTO;
-import br.edu.utfpr.alunos.webpet.dto.auth.RegisterRequestDTO;
+import br.edu.utfpr.alunos.webpet.dto.auth.UserRegisterDTO;
 
 public interface AuthenticationService {
-    AuthResponseDTO login(LoginRequestDTO loginDTO);
-    AuthResponseDTO registerUser(RegisterRequestDTO registerDTO);
-    AuthResponseDTO registerONG(ONGRegisterDTO ongDTO);
-    AuthResponseDTO registerProtetor(ProtetorRegisterDTO protetorDTO);
+    AuthResponseDTO loginUser(LoginRequestDTO data);
+    AuthResponseDTO loginOng(LoginRequestDTO data);
+    AuthResponseDTO loginProtetor(LoginRequestDTO data);
+    AuthResponseDTO registerUser(UserRegisterDTO data);
+    AuthResponseDTO registerOng(ONGRegisterDTO data);
+    AuthResponseDTO registerProtetor(ProtetorRegisterDTO data);
 }

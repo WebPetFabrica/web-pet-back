@@ -15,7 +15,6 @@ import br.edu.utfpr.alunos.webpet.dto.user.ONGUpdateRequestDTO;
 import br.edu.utfpr.alunos.webpet.infra.exception.BusinessException;
 import br.edu.utfpr.alunos.webpet.infra.exception.ErrorCode;
 import br.edu.utfpr.alunos.webpet.mapper.UserMapper;
-import br.edu.utfpr.alunos.webpet.repositories.BaseUserRepository;
 import br.edu.utfpr.alunos.webpet.repositories.ONGRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
 import lombok.RequiredArgsConstructor;
@@ -27,30 +26,27 @@ import lombok.extern.slf4j.Slf4j;
 public class ONGServiceImpl implements ONGService {
     
     private final ONGRepository ongRepository;
-    private final BaseUserRepository baseUserRepository;
     private final UserMapper userMapper;
     
-    public ONGServiceImpl(@Qualifier("ONGRepository") ONGRepository ongRepository,
-                         @Qualifier("userRepository") BaseUserRepository baseUserRepository,
-                         UserMapper userMapper) {
+    public ONGServiceImpl(ONGRepository ongRepository, UserMapper userMapper) {
         this.ongRepository = ongRepository;
-        this.baseUserRepository = baseUserRepository;
         this.userMapper = userMapper;
     }
     
     @Override
     @Transactional(readOnly = true)
     public Page<ONGResponseDTO> findAllActiveONGs(Pageable pageable) {
-        return ongRepository.findByUserTypeAndActiveTrue(UserType.ONG, pageable)
-                .map(ong -> userMapper.toONGResponseDTO((ONG) ong));
+        return ongRepository.findAll(pageable)
+                .map(ong -> userMapper.toONGResponseDTO(ong));
     }
     
     @Override
     @Transactional(readOnly = true)
     public List<ONGResponseDTO> findAllActiveONGs() {
-        return ongRepository.findByUserTypeAndActiveTrue(UserType.ONG)
+        return ongRepository.findAll()
                 .stream()
-                .map(ong -> userMapper.toONGResponseDTO((ONG) ong))
+                .filter(ONG::isActive)
+                .map(userMapper::toONGResponseDTO)
                 .toList();
     }
     
@@ -58,8 +54,7 @@ public class ONGServiceImpl implements ONGService {
     @Transactional(readOnly = true)
     public Optional<ONGResponseDTO> findById(String id) {
         return ongRepository.findByIdAndActiveTrue(id)
-                .filter(ong -> ong instanceof ONG)
-                .map(ong -> userMapper.toONGResponseDTO((ONG) ong));
+                .map(userMapper::toONGResponseDTO);
     }
     
     @Override
@@ -90,7 +85,7 @@ public class ONGServiceImpl implements ONGService {
         
         // Check if email is being changed and if it's unique
         if (updateRequest.email() != null && !updateRequest.email().equals(ong.getEmail())) {
-            if (baseUserRepository.existsByEmail(updateRequest.email())) {
+            if (ongRepository.existsByEmail(updateRequest.email())) {
                 throw new BusinessException(ErrorCode.USER_EMAIL_EXISTS);
             }
             ong.setEmail(updateRequest.email());
