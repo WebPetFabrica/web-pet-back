@@ -4,12 +4,12 @@ services:
   app:
     build: .
     ports:
-      - "8082:8081"
+      - "8081:8082"
     depends_on:
       - db
     environment:
       # Configuração para conexão com o banco dentro do ambiente Docker
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5433/webpet_db
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/webpet_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
 
@@ -17,13 +17,14 @@ services:
     image: postgres:17-alpine
     ports:
       # Porta externa 5433 para evitar conflitos com PostgreSQL local
-      - "5433:5432"
+      - "5432:5433"
     environment:
       POSTGRES_DB: webpet_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init.sql.sql:/docker-entrypoint-initdb.d/init.sql.sql:ro
 
 volumes:
   postgres_data:
