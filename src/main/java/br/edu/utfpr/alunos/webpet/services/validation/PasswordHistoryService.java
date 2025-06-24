@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Service for managing password history to prevent reuse of recent passwords.
@@ -54,10 +56,9 @@ public class PasswordHistoryService {
         
         try {
             List<PasswordHistory> history = passwordHistoryRepository
-                .findByUserIdOrderByCreatedAtDesc(userId);
+                .findTopNByUserId(userId, PageRequest.of(0, MAX_HISTORY_SIZE));
             
             boolean isReused = history.stream()
-                .limit(MAX_HISTORY_SIZE)
                 .anyMatch(h -> passwordEncoder.matches(newPassword, h.getPasswordHash()));
             
             if (isReused) {

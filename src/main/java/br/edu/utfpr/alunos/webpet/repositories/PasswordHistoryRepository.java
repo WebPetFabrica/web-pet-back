@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.data.domain.Pageable;
 import java.util.Optional;
 
 /**
@@ -110,8 +111,8 @@ public interface PasswordHistoryRepository extends JpaRepository<PasswordHistory
      * @param limit maximum number of entries to return
      * @return list of recent password history entries, limited by count
      */
-    @Query("SELECT p FROM PasswordHistory p WHERE p.userId = :userId ORDER BY p.createdAt DESC LIMIT :limit")
-    List<PasswordHistory> findTopNByUserId(@Param("userId") String userId, @Param("limit") int limit);
+    @Query("SELECT p FROM PasswordHistory p WHERE p.userId = :userId ORDER BY p.createdAt DESC")
+    List<PasswordHistory> findTopNByUserId(@Param("userId") String userId, Pageable pageable);
     
     /**
      * Checks if a user has any password history.
