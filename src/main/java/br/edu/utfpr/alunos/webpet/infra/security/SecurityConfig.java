@@ -32,6 +32,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/auth/health").permitAll()
                         .requestMatchers(HttpMethod.GET, "user/ongs").permitAll()
                         .requestMatchers(HttpMethod.GET, "/animal/animals").permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         // TODO: Em ambiente de produção, restringir adequadamente os endpoints
                         // e adicionar CSRF protection para rotas não-API
                         .anyRequest().authenticated()

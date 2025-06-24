@@ -19,6 +19,7 @@ import br.edu.utfpr.alunos.webpet.infra.exception.BusinessException;
 import br.edu.utfpr.alunos.webpet.infra.exception.ErrorCode;
 import br.edu.utfpr.alunos.webpet.mapper.DonationMapper;
 import br.edu.utfpr.alunos.webpet.repositories.DonationRepository;
+import br.edu.utfpr.alunos.webpet.services.payment.PaymentGatewayService;
 
 /**
  * Implementation of DonationService interface.
@@ -36,10 +37,12 @@ public class DonationServiceImpl implements DonationService {
     
     private final DonationRepository donationRepository;
     private final DonationMapper donationMapper;
+    private final PaymentGatewayService paymentGatewayService;
     
-    public DonationServiceImpl(DonationRepository donationRepository, DonationMapper donationMapper) {
+    public DonationServiceImpl(DonationRepository donationRepository, DonationMapper donationMapper, PaymentGatewayService paymentGatewayService) {
         this.donationRepository = donationRepository;
         this.donationMapper = donationMapper;
+        this.paymentGatewayService = paymentGatewayService;
     }
     
     @Override
@@ -65,6 +68,17 @@ public class DonationServiceImpl implements DonationService {
                 throw new BusinessException(ErrorCode.VALIDATION_ERROR, 
                     "Dados da doação são inválidos");
             }
+            
+            // Process payment
+            logger.info("Processing payment for donation amount: {}", createRequest.valor());
+            boolean paymentSuccess = paymentGatewayService.processPayment(createRequest.valor());
+            
+            if (!paymentSuccess) {
+                throw new BusinessException(ErrorCode.PAYMENT_FAILED, 
+                    "Falha no processamento do pagamento");
+            }
+            
+            logger.info("Payment processed successfully for donation amount: {}", createRequest.valor());
             
             // Save donation
             Donation savedDonation = donationRepository.save(donation);
