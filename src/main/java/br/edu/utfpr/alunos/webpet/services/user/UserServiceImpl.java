@@ -69,7 +69,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Cacheable(value = "userProfiles", key = "#email")
-    public UserResponseDTO getCurrentUserProfile(String email) {
+    public UserResponseDTO getUserProfile(String email) {
         String correlationId = MDC.get("correlationId");
         log.info("Getting current user profile for email: {} [correlationId: {}]", email, correlationId);
         

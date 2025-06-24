@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface UserService {
     Optional<BaseUser> findByEmail(String email);
-    UserResponseDTO getCurrentUserProfile(String email);
+    UserResponseDTO getUserProfile(String email);
     UserDetailedResponseDTO getUserDetailedProfile(String email);
     UserResponseDTO getUserById(String id);
     void deactivateUser(String email);

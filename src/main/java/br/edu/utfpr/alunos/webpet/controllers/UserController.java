@@ -71,7 +71,7 @@ public class UserController {
         
         log.info("Getting current user profile for: {} [correlationId: {}]", userEmail, correlationId);
         
-        UserResponseDTO user = userService.getCurrentUserProfile(userEmail);
+        UserResponseDTO user = userService.getUserProfile(userEmail);
         
         log.info("Current user profile retrieved successfully for: {} [correlationId: {}]", 
             userEmail, correlationId);
