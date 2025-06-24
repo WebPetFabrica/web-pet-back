@@ -25,3 +25,107 @@ Thumbs.db
 # User-specific files
 *.swp
 *.swo
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# Java/Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Spring Boot - Only ignore local/sensitive config files
+application-local.properties
+application-secret.properties
+application-dev-local.properties
+
+# Logs
+logs/
+*.log
+
+# Docker
+docker-compose.override.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment and Credentials
+.env
+.env.*
+*.pem
+*.key
+
+# Database
+*.db
+*.sqlite
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~.nib
+
+# Development artifacts
+.dev/
+dev_*
+*.dev
+
+# Application startup and testing logs
+app-*.log
+final-*.log
+startup-*.log
+success-*.log
+working-*.log
+application.log
+nohup.out
+
+# Test artifacts
+*.disabled
+
+# Test directories (disabled)
+src/test.disabled/
+src/test.bak/
+
+# Deployment and build artifacts
+*.pid
+.java-version
+
+# H2 Database files (development)
+*.h2.db
+*.trace.db
+
+# Cache directories
+.cache/
+cache/
+
+# Documentation build artifacts
+docs/build/
+docs/.vuepress/dist/
+
+# Node.js (if using frontend tools)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor backup files
+*~
+.#*
+\#*#
+.*.orig
+
+# Local settings
+/.claude/
+
+# Environment-specific properties
+application-dev.properties
+application-prod.properties
+application-cache.properties

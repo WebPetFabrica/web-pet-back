@@ -1,9 +1,8 @@
 package br.edu.utfpr.alunos.webpet.domain.user;
 
-
-import br.edu.utfpr.alunos.webpet.utils.enums.UserType;
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,19 +12,66 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+public class User extends BaseUser {
+    @Column(nullable = false)
     private String name;
-    private String email;
-    private String phone;
-    private String cpf;
-    private String cnpj;
-
-    @Enumerated(EnumType.STRING)
-    private UserType userType;
-    private String password;
-
+    
+    private String surname;
+    
+    private User(String name, String surname, String email, String password, String celular) {
+        super(email, password, celular, UserType.USER);
+        this.name = name;
+        this.surname = surname;
+    }
+    
+    public static UserBuilder builder() {
+        return new UserBuilder();
+    }
+    
+    @Override
+    public String getDisplayName() {
+        return surname != null ? name + " " + surname : name;
+    }
+    
+    @Override
+    public String getIdentifier() {
+        return getEmail();
+    }
+    
+    public static class UserBuilder {
+        private String name;
+        private String surname;
+        private String email;
+        private String password;
+        private String celular;
+        
+        public UserBuilder name(String name) {
+            this.name = name;
+            return this;
+        }
+        
+        public UserBuilder surname(String surname) {
+            this.surname = surname;
+            return this;
+        }
+        
+        public UserBuilder email(String email) {
+            this.email = email;
+            return this;
+        }
+        
+        public UserBuilder password(String password) {
+            this.password = password;
+            return this;
+        }
+        
+        public UserBuilder celular(String celular) {
+            this.celular = celular;
+            return this;
+        }
+        
+        public User build() {
+            return new User(name, surname, email, password, celular);
+        }
+    }
 }

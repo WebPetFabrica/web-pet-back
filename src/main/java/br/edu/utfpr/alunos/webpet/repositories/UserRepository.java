@@ -1,14 +1,17 @@
 package br.edu.utfpr.alunos.webpet.repositories;
 
-import br.edu.utfpr.alunos.webpet.domain.user.User;
+import java.util.Optional;
 import br.edu.utfpr.alunos.webpet.utils.enums.UserType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import br.edu.utfpr.alunos.webpet.domain.user.User;
 
 import java.util.List;
-import java.util.Optional;
-
+@Repository
 public interface UserRepository extends JpaRepository<User, String> {
     Optional<User> findByEmail(String email);
     List<User> findAllByUserType(UserType userType);
     
+    boolean existsByEmail(String email);
+    Optional<User> findByIdAndActiveTrue(String id);
 }

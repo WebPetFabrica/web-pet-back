@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    ports:
+      - "${APP_PORT:-80}:8081"
+    depends_on:
+      - db
+    environment:
+      # Production database configuration
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      
+      # Production security configuration
+      JWT_SECRET: ${JWT_SECRET}
+      
+      # Production profile
+      SPRING_PROFILES_ACTIVE: prod
+      
+      # Production CORS - restrict origins
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+      
+      # Production logging
+      LOG_LEVEL_APP: WARN
+      LOG_LEVEL_SECURITY: INFO
+      LOGGING_FORMAT: json
+      
+      # Production JVM options
+      JAVA_OPTS: >-
+        -Xms512m -Xmx1024m
+        -XX:+UseG1GC
+        -XX:+UseStringDeduplication
+        -Dspring.profiles.active=prod
+        
+    networks:
+      - webpet-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1.5G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.webpet.rule=Host(`api.webpet.com`)"
+      - "traefik.http.services.webpet.loadbalancer.server.port=8081"
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+      - ./database/backup:/backup
+    networks:
+      - webpet-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Don't expose database port in production
+    # ports: []
+
+volumes:
+  postgres_data_prod:
+    driver: local
+
+networks:
+  webpet-network:
+    driver: bridge
