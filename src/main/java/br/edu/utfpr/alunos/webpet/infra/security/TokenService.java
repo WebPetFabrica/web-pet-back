@@ -2,6 +2,7 @@ package br.edu.utfpr.alunos.webpet.infra.security;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.ZoneOffset;
 import java.time.ZoneId;
 
@@ -80,6 +81,6 @@ public class TokenService {
      * @return expiration instant
      */
     private Instant generationExpirationDate() {
-        return LocalDateTime.now().plusHours(2).toInstant(ZoneId.of(this.timezone));
+        return ZonedDateTime.now(ZoneId.of(this.timezone)).plusHours(2).toInstant();
     }
 }

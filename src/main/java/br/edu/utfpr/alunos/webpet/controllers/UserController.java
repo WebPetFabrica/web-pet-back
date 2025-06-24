@@ -269,4 +269,12 @@ public class UserController {
     private String getCurrentUserEmail() {
         return MDC.get("userId") != null ? MDC.get("userId") : "anonymous";
     }
+    @GetMapping("/me")
+    @SecurityRequirement(name = "bearer-key")
+    public ResponseEntity<UserResponseDTO> getCurrentUserProfile(Authentication authentication) {
+        String userEmail = authentication.getName();
+        UserResponseDTO userProfile = userService.getUserProfile(userEmail);
+        return ResponseEntity.ok(userProfile);
+    }
+
 }
