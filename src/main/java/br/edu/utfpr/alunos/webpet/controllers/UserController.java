@@ -1,5 +1,11 @@
 package br.edu.utfpr.alunos.webpet.controllers;
 
+import br.edu.utfpr.alunos.webpet.domain.user.User;
+import br.edu.utfpr.alunos.webpet.dto.ResponseDTO;
+import br.edu.utfpr.alunos.webpet.repositories.UserRepository;
+import br.edu.utfpr.alunos.webpet.services.UserService;
+import br.edu.utfpr.alunos.webpet.utils.enums.UserType;
+import lombok.RequiredArgsConstructor;
 import br.edu.utfpr.alunos.webpet.dto.user.UserResponseDTO;
 import br.edu.utfpr.alunos.webpet.infra.openapi.ErrorExamples;
 import br.edu.utfpr.alunos.webpet.services.user.UserService;
@@ -18,12 +24,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @Slf4j
 @RestController
 @RequestMapping("/user")
 @RequiredArgsConstructor
 @Tag(name = "Usuário", description = "Endpoints para gerenciamento de perfil do usuário")
 @SecurityRequirement(name = "bearerAuth")
+@RequiredArgsConstructor
 public class UserController {
     
     private final UserService userService;

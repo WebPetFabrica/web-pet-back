@@ -1,3 +1,30 @@
+# Eclipse
+.classpath
+.project
+.settings/
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+out/
+
+# Maven
+/target/
+
+# Build output
+/bin/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# User-specific files
+*.swp
+*.swo
 # IDE
 .idea/
 *.iml
