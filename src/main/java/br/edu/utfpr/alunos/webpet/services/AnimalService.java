@@ -1,26 +1,40 @@
 package br.edu.utfpr.alunos.webpet.services;
 
+import br.edu.utfpr.alunos.webpet.domain.user.Adoption;
 import br.edu.utfpr.alunos.webpet.domain.user.Animal;
+import br.edu.utfpr.alunos.webpet.domain.user.User;
+import br.edu.utfpr.alunos.webpet.dto.AdoptionResponseDTO;
 import br.edu.utfpr.alunos.webpet.dto.AnimalDTO;
 import br.edu.utfpr.alunos.webpet.dto.ResponseDTO;
+import br.edu.utfpr.alunos.webpet.dto.UserDTO;
+import br.edu.utfpr.alunos.webpet.repositories.AdoptionRepository;
 import br.edu.utfpr.alunos.webpet.repositories.AnimalRepository;
 import br.edu.utfpr.alunos.webpet.utils.enums.CategoryType;
 import br.edu.utfpr.alunos.webpet.utils.enums.StatusType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 
 @Service
 public class AnimalService {
+    private final AdoptionRepository adoptionRepository;
     AnimalRepository animalRepository;
 
-    public AnimalService(AnimalRepository animalRepository) {
+
+    public AnimalService(AnimalRepository animalRepository, AdoptionRepository adoptionRepository) {
         this.animalRepository = animalRepository;
+        this.adoptionRepository = adoptionRepository;
+
     }
+
+
 
     public ResponseEntity<ResponseDTO> getAll() {
         List<Animal> animals = animalRepository.findAll();
@@ -140,5 +154,40 @@ public class AnimalService {
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Animal não encontrado"));
         animalRepository.delete(animal);
         return ResponseEntity.ok(ResponseDTO.success("Animal deletado com sucesso", null));
+    }
+
+    public AdoptionResponseDTO adoptAnimal(String animalId) {
+        Animal animal = animalRepository.findById(animalId)
+                .orElseThrow(() -> new RuntimeException("Animal não encontrado"));
+
+        if (animal.getStatus() != StatusType.AVAILABLE) {
+            throw new RuntimeException("Animal não está disponível para adoção");
+        }
+
+        animal.setStatus(StatusType.ADOPTED);
+        Animal adoptedAnimal = animalRepository.save(animal);
+
+        // Get authenticated user
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) authentication.getPrincipal();
+
+        // Save adoption record
+        Adoption adoption = new Adoption();
+        adoption.setAnimal(adoptedAnimal);
+        adoption.setAdopter(user);
+        adoption.setAdoptionDate(LocalDateTime.now());
+        adoptionRepository.save(adoption);
+
+        return new AdoptionResponseDTO(
+                new AnimalDTO(
+                        adoptedAnimal.getId(),
+                        adoptedAnimal.getName(),
+                        adoptedAnimal.getDescription(),
+                        adoptedAnimal.getCategory(),
+                        adoptedAnimal.getStatus()
+                ),
+                new UserDTO(user.getId(), user.getName(), user.getEmail()),
+                adoption.getAdoptionDate()
+        );
     }
 }
