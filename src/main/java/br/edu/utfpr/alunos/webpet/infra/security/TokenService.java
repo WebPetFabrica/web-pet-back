@@ -3,6 +3,7 @@ package br.edu.utfpr.alunos.webpet.infra.security;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.ZoneId;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,6 +31,8 @@ public class TokenService {
     
     @Value("${api.security.token.secret}")
     private String secret;
+\n    @Value("${app.jwt.timezone}")
+    private String timezone;
 
     /**
      * Generates a JWT token for authenticated user.
@@ -77,6 +80,6 @@ public class TokenService {
      * @return expiration instant
      */
     private Instant generationExpirationDate() {
-        return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
+        return LocalDateTime.now().plusHours(2).toInstant(ZoneId.of(this.timezone));
     }
 }
