@@ -16,6 +16,7 @@ out/
 target/
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
+mvnw.cmd
 
 # Build output
 /bin/
