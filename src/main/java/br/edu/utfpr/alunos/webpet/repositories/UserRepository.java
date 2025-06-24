@@ -1,7 +1,7 @@
 package br.edu.utfpr.alunos.webpet.repositories;
 
 import java.util.Optional;
-import br.edu.utfpr.alunos.webpet.utils.enums.UserType;
+import br.edu.utfpr.alunos.webpet.domain.user.UserType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import br.edu.utfpr.alunos.webpet.domain.user.User;

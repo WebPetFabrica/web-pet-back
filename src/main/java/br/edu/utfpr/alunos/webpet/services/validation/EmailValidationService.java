@@ -5,7 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.net.InetAddress;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 /**
@@ -18,6 +20,7 @@ import java.util.regex.Pattern;
 public class EmailValidationService {
     
     private final DomainBlacklistService domainBlacklistService;
+    private final Map<String, Boolean> domainCache = new ConcurrentHashMap<>();
     
     // RFC 5322 compliant regex pattern
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
@@ -81,11 +84,18 @@ public class EmailValidationService {
      * Verifies if domain exists using DNS lookup
      */
     private boolean verifyDomainExists(String domain) {
+        Boolean cachedResult = domainCache.get(domain);
+        if (cachedResult != null) {
+            return cachedResult;
+        }
+        
         try {
             InetAddress.getByName(domain);
+            domainCache.put(domain, true);
             return true;
         } catch (Exception e) {
             log.debug("Domain verification failed for: {}", domain);
+            domainCache.put(domain, false);
             return false;
         }
     }
