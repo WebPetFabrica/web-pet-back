@@ -13,6 +13,7 @@ import java.util.UUID;
 
 @Service
 public class LocalStorageServiceImpl implements FileStorageService {
+    private static final String PET_IMAGES_PATH = "/images/pets/";
 
     @Value("${file.upload-dir:./uploads/pets}")
     private String uploadDir;
@@ -44,7 +45,7 @@ public class LocalStorageServiceImpl implements FileStorageService {
             Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 
             // Retornar o caminho relativo da imagem
-            return "/images/pets/" + uniqueFilename;
+            return PET_IMAGES_PATH + uniqueFilename;
         } catch (IOException e) {
             throw new RuntimeException("Falha ao armazenar arquivo: " + e.getMessage());
         }

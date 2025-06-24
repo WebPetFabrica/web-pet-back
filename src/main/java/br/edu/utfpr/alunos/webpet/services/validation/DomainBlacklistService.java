@@ -34,6 +34,7 @@ public class DomainBlacklistService {
      * Adds domain to blacklist (for future dynamic management)
      */
     public void addToBlacklist(String domain) {
+        throw new UnsupportedOperationException("A funcionalidade de adicionar domínios à blacklist dinamicamente não está implementada.");
         // Implementation for dynamic blacklist management
         // Could be backed by database for persistent storage
     }
