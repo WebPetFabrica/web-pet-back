@@ -18,8 +18,6 @@ import org.springframework.security.config.Customizer;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    @Autowired
-    private CustomUserDetailsService userDetailsService;
 
     @Autowired
     SecurityFilter securityFilter;

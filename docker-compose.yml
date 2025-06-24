@@ -4,7 +4,7 @@ services:
   app:
     build: .
     ports:
-      - "8082:8081"
+      - "8081:8082"
     depends_on:
       - db
     environment:
@@ -24,6 +24,7 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init.sql.sql:/docker-entrypoint-initdb.d/init.sql.sql:ro
 
 volumes:
   postgres_data:

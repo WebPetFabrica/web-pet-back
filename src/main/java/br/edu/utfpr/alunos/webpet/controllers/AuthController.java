@@ -19,11 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
-    private final UserRepository repository;
-    private final PasswordEncoder passwordEncoder;
-    private final TokenService tokenService;
-    private final UserRepository userRepository;
-    private final AnimalRepository animalRepository;
     private final AuthService authService;
 
     @PostMapping("/register")
