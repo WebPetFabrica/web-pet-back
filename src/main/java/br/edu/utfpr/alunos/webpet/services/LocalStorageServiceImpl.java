@@ -14,6 +14,7 @@ import java.util.UUID;
 @Service
 public class LocalStorageServiceImpl implements FileStorageService {
     private static final String PET_IMAGES_PATH = "/images/pets/";
+    private static final String ALLOWED_FILE_EXTENSIONS_REGEX = "\\.(jpg|jpeg|png)$";
 
     @Value("${file.upload-dir:./uploads/pets}")
     private String uploadDir;
@@ -38,7 +39,7 @@ public class LocalStorageServiceImpl implements FileStorageService {
             if (originalFilename != null && originalFilename.contains(".")) {
                 fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
                 fileExtension = fileExtension.toLowerCase();
-                if (!fileExtension.matches("\\.(jpg|jpeg|png)$")) {
+                if (!fileExtension.matches(ALLOWED_FILE_EXTENSIONS_REGEX)) {
                     throw new RuntimeException("Extensão de arquivo inválida: " + fileExtension);
                 }
             }

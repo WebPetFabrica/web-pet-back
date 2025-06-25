@@ -26,7 +26,7 @@ docker compose build
 
 # 5. Verificar arquivos não commitados
 echo "📝 Verificando status do git..."
-if [[ -n $(git status -s) ]]; then
+if [[ -n "$(git status -s)" ]]; then
     echo "❌ Por favor, commit ou stash suas alterações antes de prosseguir."
     git status -s
     exit 1

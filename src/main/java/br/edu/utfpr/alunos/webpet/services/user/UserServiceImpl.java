@@ -37,9 +37,9 @@ public class UserServiceImpl implements UserService {
     public Optional<BaseUser> findByEmail(String email) {
         String correlationId = MDC.get("correlationId");
         
-        if (email == null || email.trim().isEmpty()) {
-            log.warn("Email validation failed - null/empty [correlationId: {}]", correlationId);
-            exceptionLogger.logValidationError("email", "null/empty", "Required field");
+        try {
+            validateEmail(email, correlationId);
+        } catch (ValidationException e) {
             return Optional.empty();
         }
         
@@ -73,11 +73,7 @@ public class UserServiceImpl implements UserService {
         String correlationId = MDC.get("correlationId");
         log.info("Getting current user profile for email: {} [correlationId: {}]", email, correlationId);
         
-        if (email == null || email.trim().isEmpty()) {
-            log.warn("Email validation failed - null/empty [correlationId: {}]", correlationId);
-            exceptionLogger.logValidationError("email", "null/empty", "Required field");
-            throw new ValidationException(ErrorCode.VALIDATION_REQUIRED_FIELD);
-        }
+        validateEmail(email, correlationId);
         
         BaseUser user = findByEmail(email)
                 .orElseThrow(() -> {
@@ -320,6 +316,14 @@ public class UserServiceImpl implements UserService {
             log.error("Database error during saveUser [correlationId: {}]", correlationId, e);
             exceptionLogger.logSystemError("USER_SAVE", "Database error during save", e);
             throw new SystemException(ErrorCode.SYSTEM_DATABASE_ERROR, e);
+        }
+    }
+
+    private void validateEmail(String email, String correlationId) {
+        if (email == null || email.trim().isEmpty()) {
+            log.warn("Email validation failed - null/empty [correlationId: {}]", correlationId);
+            exceptionLogger.logValidationError("email", "null/empty", "Required field");
+            throw new ValidationException(ErrorCode.VALIDATION_REQUIRED_FIELD);
         }
     }
 }
