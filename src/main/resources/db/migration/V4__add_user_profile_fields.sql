@@ -1,4 +1,4 @@
 -- Adiciona colunas de perfil à tabela de usuários
-ALTER TABLE users ADD COLUMN bio VARCHAR(255);
-ALTER TABLE users ADD COLUMN avatar_url VARCHAR(255);
-ALTER TABLE users ADD COLUMN phone_number VARCHAR(20);
+ALTER TABLE users ADD COLUMN bio VARCHAR(255) NOT NULL DEFAULT '';
+ALTER TABLE users ADD COLUMN avatar_url VARCHAR(255) NOT NULL DEFAULT 'default_avatar.png';
+ALTER TABLE users ADD COLUMN phone_number VARCHAR(20) NOT NULL DEFAULT 'N/A';
