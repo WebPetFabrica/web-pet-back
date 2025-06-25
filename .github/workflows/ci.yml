@@ -30,13 +30,14 @@ jobs:
       - name: Configurar o Java JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: "21"
-          distribution: "temurin"
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
 
-      # 3. Dá permissão de execução aos scripts necessários (SINTAXE CORRIGIDA)
-      - name: Dar permissão de execução aos scripts
-        run: chmod +x ./mvnw && chmod +x ./validate-pr.sh
+      # 3. Dá permissão de execução ao Maven Wrapper
+      - name: Dar permissão de execução ao mvnw
+        run: chmod +x ./mvnw
 
-      # 4. Executa o seu script de validação completo
-      - name: Executar o script de validação (Build e Testes)
-        run: ./validate-pr.sh
+      # 4. Executa o build e os testes diretamente
+      - name: Compilar e Testar com Maven
+        run: ./mvnw clean package -DskipTests=false
