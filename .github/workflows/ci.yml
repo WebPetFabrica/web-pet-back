@@ -33,9 +33,11 @@ jobs:
           java-version: "21"
           distribution: "temurin"
 
-      # 3. Dá permissão de execução ao Maven Wrapper
-      - name: Dar permissão de execução ao mvnw
-        run: chmod +x ./mvnw
+      # 3. Dá permissão de execução aos scripts necessários
+      - name: Dar permissão de execução aos scripts
+        run:  < /dev/null | 
+          chmod +x ./mvnw
+          chmod +x ./validate-pr.sh
 
       # 4. Executa o seu script de validação completo
       - name: Executar o script de validação (Build e Testes)
