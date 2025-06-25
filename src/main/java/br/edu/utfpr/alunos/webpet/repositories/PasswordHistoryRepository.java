@@ -98,8 +98,13 @@ public interface PasswordHistoryRepository extends JpaRepository<PasswordHistory
      * @param userId the user's unique identifier
      * @return the most recent password history entry, if any
      */
-    @Query("SELECT p FROM PasswordHistory p WHERE p.userId = :userId ORDER BY p.createdAt DESC LIMIT 1")
-    Optional<PasswordHistory> findLatestByUserId(@Param("userId") String userId);
+    @Query("SELECT p FROM PasswordHistory p WHERE p.userId = :userId ORDER BY p.createdAt DESC")
+    List<PasswordHistory> findLatestByUserIdList(@Param("userId") String userId, Pageable pageable);
+    
+    default Optional<PasswordHistory> findLatestByUserId(String userId) {
+        var results = findLatestByUserIdList(userId, org.springframework.data.domain.PageRequest.of(0, 1));
+        return results.isEmpty() ? Optional.empty() : Optional.of(results.get(0));
+    }
     
     /**
      * Gets the top N most recent password history entries for a user.
@@ -166,12 +171,12 @@ public interface PasswordHistoryRepository extends JpaRepository<PasswordHistory
      * @return number of deleted entries
      */
     @Modifying
-    @Query("DELETE FROM PasswordHistory p WHERE p.userId = :userId " +
-           "AND p.id NOT IN (" +
-           "    SELECT p2.id FROM PasswordHistory p2 " +
-           "    WHERE p2.userId = :userId " +
-           "    ORDER BY p2.createdAt DESC " +
+    @Query(value = "DELETE FROM password_history WHERE user_id = :userId " +
+           "AND id NOT IN (" +
+           "    SELECT id FROM password_history " +
+           "    WHERE user_id = :userId " +
+           "    ORDER BY created_at DESC " +
            "    LIMIT :keepCount" +
-           ")")
+           ")", nativeQuery = true)
     int deleteExcessHistory(@Param("userId") String userId, @Param("keepCount") int keepCount);
 }
