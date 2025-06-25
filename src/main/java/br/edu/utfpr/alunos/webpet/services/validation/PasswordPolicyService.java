@@ -61,7 +61,7 @@ public class PasswordPolicyService {
     private boolean hasRequiredComplexity(String password) {
         int complexityScore = 0;
         
-        if (UPPERCASE_PATTERN.matcher(password).matches()) complexityScore++;
+        if (UPPERCASE_PATTERN.matcher(password).find()) complexityScore++;
         if (LOWERCASE_PATTERN.matcher(password).matches()) complexityScore++;
         if (DIGIT_PATTERN.matcher(password).matches()) complexityScore++;
         if (SPECIAL_CHAR_PATTERN.matcher(password).matches()) complexityScore++;
