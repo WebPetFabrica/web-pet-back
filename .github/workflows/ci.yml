@@ -33,11 +33,9 @@ jobs:
           java-version: "21"
           distribution: "temurin"
 
-      # 3. Dá permissão de execução aos scripts necessários
+      # 3. Dá permissão de execução aos scripts necessários (SINTAXE CORRIGIDA)
       - name: Dar permissão de execução aos scripts
-        run:  < /dev/null | 
-          chmod +x ./mvnw
-          chmod +x ./validate-pr.sh
+        run: chmod +x ./mvnw && chmod +x ./validate-pr.sh
 
       # 4. Executa o seu script de validação completo
       - name: Executar o script de validação (Build e Testes)
