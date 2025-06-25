@@ -315,7 +315,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             data.email(), correlationId);
         
         // Validate email uniqueness across all user types
-        if (userRepository.existsByEmail(data.email())) {
+        if (userRepository.existsByEmail(data.email()) || ongRepository.existsByEmail(data.email()) || protetorRepository.existsByEmail(data.email())) {
             log.warn("User registration failed - email already exists: {} [correlationId: {}]", 
                 data.email(), correlationId);
             exceptionLogger.logBusinessError("USER_REGISTRATION", "Email exists", correlationId);
