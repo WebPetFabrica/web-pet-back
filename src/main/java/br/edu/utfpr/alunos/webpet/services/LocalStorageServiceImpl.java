@@ -18,6 +18,9 @@ public class LocalStorageServiceImpl implements FileStorageService {
 
     @Value("${file.upload-dir:./uploads/pets}")
     private String uploadDir;
+    
+    @Value("${spring.servlet.multipart.max-file-size}")
+    private String maxFileSize;
 
     @Override
     public String storeFile(MultipartFile file) {
@@ -25,6 +28,12 @@ public class LocalStorageServiceImpl implements FileStorageService {
             // Validar se o arquivo está vazio
             if (file.isEmpty()) {
                 throw new RuntimeException("Falha ao armazenar arquivo vazio");
+            }
+            
+            // Valida o tamanho do ficheiro
+            long maxSizeInBytes = parseSize(maxFileSize);
+            if (file.getSize() > maxSizeInBytes) {
+                throw new RuntimeException("Ficheiro excede o tamanho máximo permitido de " + maxFileSize);
             }
 
             // Criar diretório se não existir
@@ -54,5 +63,15 @@ public class LocalStorageServiceImpl implements FileStorageService {
         } catch (IOException e) {
             throw new RuntimeException("Falha ao armazenar arquivo: " + e.getMessage());
         }
+    }
+    
+    private long parseSize(String size) {
+        size = size.toUpperCase();
+        if (size.endsWith("MB")) {
+            return Long.parseLong(size.substring(0, size.length() - 2)) * 1024 * 1024;
+        } else if (size.endsWith("KB")) {
+            return Long.parseLong(size.substring(0, size.length() - 2)) * 1024;
+        }
+        return Long.parseLong(size);
     }
 }
