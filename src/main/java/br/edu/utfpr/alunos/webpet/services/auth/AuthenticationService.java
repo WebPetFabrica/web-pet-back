@@ -12,6 +12,6 @@ public interface AuthenticationService {
     AuthResponseDTO loginOng(LoginRequestDTO data);
     AuthResponseDTO loginProtetor(LoginRequestDTO data);
     AuthResponseDTO registerUser(UserRegisterDTO data);
-    AuthResponseDTO registerOng(ONGRegisterDTO data);
+    AuthResponseDTO registerONG(ONGRegisterDTO data);
     AuthResponseDTO registerProtetor(ProtetorRegisterDTO data);
 }

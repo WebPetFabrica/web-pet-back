@@ -7,6 +7,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import br.edu.utfpr.alunos.webpet.services.user.UserService;
 import br.edu.utfpr.alunos.webpet.dto.user.UserResponseDTO;
+import br.edu.utfpr.alunos.webpet.domain.user.UserType;
+import br.edu.utfpr.alunos.webpet.infra.exception.ErrorCode;
 import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.anyString;
 import br.edu.utfpr.alunos.webpet.infra.exception.AuthenticationException;
@@ -31,31 +33,31 @@ class UserControllerTest {
     @WithMockUser(username="test@user.com", roles={"USER"})
     void shouldReturnUserProfileForAuthenticatedUser() throws Exception {
         // Prepara um DTO de exemplo para o mock retornar
-        UserResponseDTO sampleUser = new UserResponseDTO("1", "testuser", "test@user.com", "Sample bio", "http://avatar.url", "1234567890");
+        UserResponseDTO sampleUser = new UserResponseDTO("1", "test@user.com", "testuser", UserType.USER, "test@user.com", true);
         when(userService.getCurrentUserProfile("test@user.com")).thenReturn(sampleUser);
 
-        mockMvc.perform(get("/api/users/me"))
+        mockMvc.perform(get("/user"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("1"))
-                .andExpect(jsonPath("$.username").value("testuser"))
+                .andExpect(jsonPath("$.displayName").value("testuser"))
                 .andExpect(jsonPath("$.email").value("test@user.com"))
-                .andExpect(jsonPath("$.bio").value("Sample bio"))
-                .andExpect(jsonPath("$.avatarUrl").value("http://avatar.url"))
-                .andExpect(jsonPath("$.phoneNumber").value("1234567890"));
+                .andExpect(jsonPath("$.userType").value("USER"))
+                .andExpect(jsonPath("$.identifier").value("test@user.com"))
+                .andExpect(jsonPath("$.active").value(true));
     }
 
     @Test
     void shouldReturnUnauthorizedWhenNoUserIsAuthenticated() throws Exception {
-        mockMvc.perform(get("/api/users/me"))
+        mockMvc.perform(get("/user"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     @WithMockUser(username="inactive@user.com", roles={"USER"})
     void shouldReturnForbiddenWhenUserIsInactive() throws Exception {
-        when(userService.getCurrentUserProfile(anyString())).thenThrow(new AuthenticationException("Utilizador inativo ou não autorizado"));
+        when(userService.getCurrentUserProfile(anyString())).thenThrow(new AuthenticationException(ErrorCode.AUTH_ACCOUNT_INACTIVE));
 
-        mockMvc.perform(get("/api/users/me"))
+        mockMvc.perform(get("/user"))
                 .andExpect(status().isForbidden());
     }
 }

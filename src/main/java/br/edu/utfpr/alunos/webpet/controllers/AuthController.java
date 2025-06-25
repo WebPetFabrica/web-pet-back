@@ -121,7 +121,7 @@ public class AuthController {
             log.info("ONG registration attempt for email: {} [correlationId: {}]", 
                 registerRequest.email(), correlationId);
             
-            AuthResponseDTO response = authenticationService.registerOng(registerRequest);
+            AuthResponseDTO response = authenticationService.registerONG(registerRequest);
             
             log.info("ONG registration successful for email: {} [correlationId: {}]", 
                 registerRequest.email(), correlationId);

@@ -132,7 +132,7 @@ public class AuthenticationServiceImpl implements AuthenticationService, UserDet
     }
     
     @Override
-    public AuthResponseDTO registerOng(ONGRegisterDTO data) {
+    public AuthResponseDTO registerONG(ONGRegisterDTO data) {
         validateEmailUniqueness(data.email());
         String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());
         ONG newOng = ONG.builder()
