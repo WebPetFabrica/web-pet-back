@@ -83,25 +83,25 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         String correlationId = MDC.get("correlationId");
         log.info("Generic authentication attempt for email: {} [correlationId: {}]", data.email(), correlationId);
         
-        // Check User first
-        if (userRepository.findByEmail(data.email()).isPresent()) {
+        // Procura o utilizador em todos os repositórios de uma só vez
+        BaseUser user = findUserByEmailAcrossRepositories(data.email());
+
+        if (user == null) {
+            log.warn("Authentication failed - email not found: {} [correlationId: {}]", data.email(), correlationId);
+            recordFailedAttempt(data.email(), "Email not found in any user type", correlationId);
+            throw new AuthenticationException(ErrorCode.AUTH_INVALID_CREDENTIALS);
+        }
+
+        // Chama o método de login apropriado com base no tipo de utilizador
+        if (user instanceof User) {
             return loginUser(data);
-        }
-        
-        // Check ONG
-        if (ongRepository.findByEmail(data.email()).isPresent()) {
+        } else if (user instanceof ONG) {
             return loginOng(data);
-        }
-        
-        // Check Protetor
-        if (protetorRepository.findByEmail(data.email()).isPresent()) {
+        } else if (user instanceof Protetor) {
             return loginProtetor(data);
         }
-        
-        // No user found with this email
-        log.warn("Authentication failed - email not found: {} [correlationId: {}]", data.email(), correlationId);
-        recordFailedAttempt(data.email(), "Email not found in any user type", correlationId);
-        throw new AuthenticationException(ErrorCode.AUTH_INVALID_CREDENTIALS);
+
+        throw new SystemException("Tipo de utilizador inesperado durante o login.");
     }
 
     /**
@@ -509,6 +509,21 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
     }
 
+
+    /**
+     * Finds a user by email across all user repositories.
+     * Searches User, ONG, and Protetor repositories.
+     * 
+     * @param email the user's email address
+     * @return the BaseUser if found, null otherwise
+     */
+    private BaseUser findUserByEmailAcrossRepositories(String email) {
+        return userRepository.findByEmail(email)
+                .map(BaseUser.class::cast)
+                .or(() -> ongRepository.findByEmail(email).map(BaseUser.class::cast))
+                .or(() -> protetorRepository.findByEmail(email).map(BaseUser.class::cast))
+                .orElse(null);
+    }
 
     /**
      * Finds the display name for a user by email address.
