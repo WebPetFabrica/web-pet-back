@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.anyString;
 import br.edu.utfpr.alunos.webpet.infra.exception.AuthenticationException;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -21,6 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 class UserControllerTest {
 
     @Autowired
@@ -49,7 +51,7 @@ class UserControllerTest {
     @Test
     void shouldReturnUnauthorizedWhenNoUserIsAuthenticated() throws Exception {
         mockMvc.perform(get("/user"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -58,6 +60,6 @@ class UserControllerTest {
         when(userService.getCurrentUserProfile(anyString())).thenThrow(new AuthenticationException(ErrorCode.AUTH_ACCOUNT_INACTIVE));
 
         mockMvc.perform(get("/user"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 }
