@@ -31,15 +31,18 @@ public class EmailConfirmation {
     private String token;
     
     @Column(name = "expires_at", nullable = false)
-    private LocalDateTime expiresAt;
+    @Builder.Default
+    private LocalDateTime expiresAt = LocalDateTime.now().plusHours(24);
     
     @Column(nullable = false)
+    @Builder.Default
     private boolean confirmed = false;
     
     @Column(name = "confirmed_at")
     private LocalDateTime confirmedAt;
     
     @Column(name = "created_at", nullable = false)
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
     
     /**

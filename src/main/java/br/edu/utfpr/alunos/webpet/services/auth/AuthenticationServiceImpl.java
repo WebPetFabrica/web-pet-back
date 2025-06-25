@@ -1,6 +1,7 @@
 package br.edu.utfpr.alunos.webpet.services.auth;
 
 import br.edu.utfpr.alunos.webpet.domain.user.*;
+import br.edu.utfpr.alunos.webpet.dto.auth.AuthResponseDTO;
 import br.edu.utfpr.alunos.webpet.dto.auth.LoginRequestDTO;
 import br.edu.utfpr.alunos.webpet.dto.auth.ONGRegisterDTO;
 import br.edu.utfpr.alunos.webpet.dto.auth.ProtetorRegisterDTO;
@@ -56,51 +57,117 @@ public class AuthenticationServiceImpl implements AuthenticationService, UserDet
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByEmail(username);
+        Optional<User> user = userRepository.findByEmail(username);
+        if (user.isPresent()) {
+            BaseUser baseUser = user.get();
+            return org.springframework.security.core.userdetails.User.builder()
+                .username(baseUser.getEmail())
+                .password(baseUser.getPassword())
+                .authorities("ROLE_USER")
+                .build();
+        }
+        Optional<ONG> ong = ongRepository.findByEmail(username);
+        if (ong.isPresent()) {
+            BaseUser baseUser = ong.get();
+            return org.springframework.security.core.userdetails.User.builder()
+                .username(baseUser.getEmail())
+                .password(baseUser.getPassword())
+                .authorities("ROLE_ONG")
+                .build();
+        }
+        Optional<Protetor> protetor = protetorRepository.findByEmail(username);
+        if (protetor.isPresent()) {
+            BaseUser baseUser = protetor.get();
+            return org.springframework.security.core.userdetails.User.builder()
+                .username(baseUser.getEmail())
+                .password(baseUser.getPassword())
+                .authorities("ROLE_PROTETOR")
+                .build();
+        }
+        throw new UsernameNotFoundException("User not found: " + username);
     }
 
     @Override
-    public String login(LoginRequestDTO data) {
+    public AuthResponseDTO authenticate(LoginRequestDTO data) {
         authenticationManager = context.getBean(AuthenticationManager.class);
 
         var usernamePassword = new UsernamePasswordAuthenticationToken(data.email(), data.password());
         var auth = this.authenticationManager.authenticate(usernamePassword);
         var token = tokenService.generateToken((BaseUser) auth.getPrincipal());
         
-        loginAttemptService.loginSucceeded(data.email());
+        loginAttemptService.recordSuccessfulLogin(data.email());
         
-        return token;
+        BaseUser user = (BaseUser) auth.getPrincipal();
+        return new AuthResponseDTO(user.getDisplayName(), token, "Bearer");
     }
 
     @Override
-    public UserDetails registerUser(UserRegisterDTO data) {
+    public AuthResponseDTO loginUser(LoginRequestDTO data) {
+        return authenticate(data);
+    }
+
+    @Override
+    public AuthResponseDTO loginOng(LoginRequestDTO data) {
+        return authenticate(data);
+    }
+
+    @Override
+    public AuthResponseDTO loginProtetor(LoginRequestDTO data) {
+        return authenticate(data);
+    }
+
+    @Override
+    public AuthResponseDTO registerUser(UserRegisterDTO data) {
         validateEmailUniqueness(data.email());
         String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());
-        User newUser = new User(data.username(), data.email(), encryptedPassword, UserType.USER);
-        return this.userRepository.save(newUser);
+        User newUser = User.builder()
+                .name(data.name())
+                .email(data.email())
+                .password(encryptedPassword)
+                .celular("")
+                .build();
+        User savedUser = this.userRepository.save(newUser);
+        String token = tokenService.generateToken(savedUser);
+        return new AuthResponseDTO(savedUser.getDisplayName(), token, "Bearer");
     }
     
     @Override
-    public UserDetails registerOng(ONGRegisterDTO data) {
+    public AuthResponseDTO registerOng(ONGRegisterDTO data) {
         validateEmailUniqueness(data.email());
         String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());
-        ONG newOng = new ONG(data.username(), data.email(), encryptedPassword, data.cnpj());
-        return this.ongRepository.save(newOng);
+        ONG newOng = ONG.builder()
+                .cnpj(data.cnpj())
+                .nomeOng(data.nomeOng())
+                .email(data.email())
+                .password(encryptedPassword)
+                .celular(data.celular())
+                .build();
+        ONG savedOng = this.ongRepository.save(newOng);
+        String token = tokenService.generateToken(savedOng);
+        return new AuthResponseDTO(savedOng.getDisplayName(), token, "Bearer");
     }
     
     @Override
-    public UserDetails registerProtetor(ProtetorRegisterDTO data) {
+    public AuthResponseDTO registerProtetor(ProtetorRegisterDTO data) {
         validateEmailUniqueness(data.email());
         String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());
-        Protetor newProtetor = new Protetor(data.username(), data.email(), encryptedPassword, data.cpf());
-        return this.protetorRepository.save(newProtetor);
+        Protetor newProtetor = Protetor.builder()
+                .nomeCompleto(data.nomeCompleto())
+                .cpf(data.cpf())
+                .email(data.email())
+                .password(encryptedPassword)
+                .celular(data.celular())
+                .build();
+        Protetor savedProtetor = this.protetorRepository.save(newProtetor);
+        String token = tokenService.generateToken(savedProtetor);
+        return new AuthResponseDTO(savedProtetor.getDisplayName(), token, "Bearer");
     }
     
     private void validateEmail(String email) {
         String correlationId = MDC.get("correlationId");
         if (email == null || email.trim().isEmpty()) {
             log.warn("Tentativa de operação com e-mail nulo ou vazio [correlationID: {}]", correlationId);
-            throw new ValidationException("O e-mail não pode ser nulo ou vazio.");
+            throw new ValidationException(ErrorCode.VALIDATION_REQUIRED_FIELD);
         }
     }
 

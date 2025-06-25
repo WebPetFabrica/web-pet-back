@@ -13,6 +13,7 @@ public enum ErrorCode {
     // User Management
     USER_NOT_FOUND("USER001", "Usuário não encontrado"),
     USER_EMAIL_EXISTS("USER002", "Email já cadastrado"),
+    EMAIL_ALREADY_EXISTS("USER002", "Este e-mail já está em uso"),
     USER_CPF_EXISTS("USER003", "CPF já cadastrado"),
     USER_CNPJ_EXISTS("USER004", "CNPJ já cadastrado"),
     
@@ -53,6 +54,7 @@ public enum ErrorCode {
     DONATION_NOT_FOUND("DON001", "Doação não encontrada"),
     DONATION_INVALID_AMOUNT("DON002", "Valor de doação inválido"),
     DONATION_ALREADY_PROCESSED("DON003", "Doação já foi processada"),
+    PAYMENT_FAILED("DON004", "Ocorreu uma falha no processamento do pagamento"),
     
     // Business Logic
     BUSINESS_ERROR("BUS001", "Erro de regra de negócio"),

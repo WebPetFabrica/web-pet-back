@@ -6,7 +6,7 @@ import br.edu.utfpr.alunos.webpet.repositories.UserRepository;
 import br.edu.utfpr.alunos.webpet.dto.user.UserResponseDTO;
 import br.edu.utfpr.alunos.webpet.infra.openapi.ErrorExamples;
 import br.edu.utfpr.alunos.webpet.services.user.UserService;
-import br.edu.utfpr.alunos.webpet.utils.enums.UserType;
+import br.edu.utfpr.alunos.webpet.domain.user.UserType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -273,7 +273,7 @@ public class UserController {
     @SecurityRequirement(name = "bearer-key")
     public ResponseEntity<UserResponseDTO> getCurrentUserProfile(Authentication authentication) {
         String userEmail = authentication.getName();
-        UserResponseDTO userProfile = userService.getUserProfile(userEmail);
+        UserResponseDTO userProfile = userService.getCurrentUserProfile(userEmail);
         return ResponseEntity.ok(userProfile);
     }
 

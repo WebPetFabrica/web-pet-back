@@ -6,7 +6,6 @@ import br.edu.utfpr.alunos.webpet.repositories.UserRepository; // FROM MAIN
 import br.edu.utfpr.alunos.webpet.repositories.ONGRepository; // FROM FEATURE
 import br.edu.utfpr.alunos.webpet.repositories.ProtetorRepository; // FROM FEATURE
 
-import br.edu.utfpr.alunos.webpet.services.AuthService; // FROM MAIN
 import br.edu.utfpr.alunos.webpet.services.auth.AuthenticationService; // FROM FEATURE
 import br.edu.utfpr.alunos.webpet.services.validation.PasswordHistoryService; // FROM FEATURE
 // import br.edu.utfpr.alunos.webpet.services.validation.EmailConfirmationService; // FROM FEATURE - NOT IMPLEMENTED YET
@@ -49,7 +48,6 @@ public class AuthController {
     private final ONGRepository ongRepository; // FROM FEATURE
     private final ProtetorRepository protetorRepository; // FROM FEATURE
     
-    private final AuthService authService; // FROM MAIN (manter compatibilidade)
     private final AuthenticationService authenticationService; // FROM FEATURE (novo)
     private final PasswordHistoryService passwordHistoryService; // FROM FEATURE
     // private final EmailConfirmationService emailConfirmationService; // FROM FEATURE - NOT IMPLEMENTED YET
@@ -123,7 +121,7 @@ public class AuthController {
             log.info("ONG registration attempt for email: {} [correlationId: {}]", 
                 registerRequest.email(), correlationId);
             
-            AuthResponseDTO response = authenticationService.registerONG(registerRequest);
+            AuthResponseDTO response = authenticationService.registerOng(registerRequest);
             
             log.info("ONG registration successful for email: {} [correlationId: {}]", 
                 registerRequest.email(), correlationId);
