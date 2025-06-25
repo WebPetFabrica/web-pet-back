@@ -9,6 +9,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -21,6 +22,12 @@ class UserControllerTest {
     @WithMockUser(username="test@user.com", roles={"USER"})
     void shouldReturnUserProfileForAuthenticatedUser() throws Exception {
         mockMvc.perform(get("/api/users/me"))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.username").exists())
+                .andExpect(jsonPath("$.email").exists())
+                .andExpect(jsonPath("$.bio").exists())
+                .andExpect(jsonPath("$.avatarUrl").exists())
+                .andExpect(jsonPath("$.phoneNumber").exists());
     }
 }

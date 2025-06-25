@@ -62,9 +62,9 @@ public class PasswordPolicyService {
         int complexityScore = 0;
         
         if (UPPERCASE_PATTERN.matcher(password).find()) complexityScore++;
-        if (LOWERCASE_PATTERN.matcher(password).matches()) complexityScore++;
-        if (DIGIT_PATTERN.matcher(password).matches()) complexityScore++;
-        if (SPECIAL_CHAR_PATTERN.matcher(password).matches()) complexityScore++;
+        if (LOWERCASE_PATTERN.matcher(password).find()) complexityScore++;
+        if (DIGIT_PATTERN.matcher(password).find()) complexityScore++;
+        if (SPECIAL_CHAR_PATTERN.matcher(password).find()) complexityScore++;
         
         // Require at least 3 of 4 complexity types
         return complexityScore >= 3;
