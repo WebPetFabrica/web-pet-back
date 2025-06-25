@@ -35,8 +35,9 @@ fi
 # 5. Verificar arquivos não commitados
 echo "📝 Verificando status do git..."
 if [[ -n $(git status -s) ]]; then
-    echo "⚠️  Arquivos não commitados:"
+    echo "❌ Por favor, commit ou stash suas alterações antes de prosseguir."
     git status -s
+    exit 1
 fi
 
 echo "✅ Validação concluída!"
