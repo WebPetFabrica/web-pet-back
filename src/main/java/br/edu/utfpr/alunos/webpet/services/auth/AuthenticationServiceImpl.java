@@ -3,6 +3,7 @@ package br.edu.utfpr.alunos.webpet.services.auth;
 import br.edu.utfpr.alunos.webpet.domain.user.BaseUser;
 import br.edu.utfpr.alunos.webpet.domain.user.ONG;
 import br.edu.utfpr.alunos.webpet.domain.user.Protetor;
+import java.util.Optional;
 import br.edu.utfpr.alunos.webpet.domain.user.User;
 import br.edu.utfpr.alunos.webpet.dto.auth.AuthResponseDTO;
 import br.edu.utfpr.alunos.webpet.dto.auth.LoginRequestDTO;
@@ -84,14 +85,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         log.info("Generic authentication attempt for email: {} [correlationId: {}]", data.email(), correlationId);
         
         // Procura o utilizador em todos os repositórios de uma só vez
-        BaseUser user = findUserByEmailAcrossRepositories(data.email());
+        Optional<BaseUser> optionalUser = findUserByEmailAcrossRepositories(data.email());
 
-        if (user == null) {
+        if (optionalUser.isEmpty()) {
             log.warn("Authentication failed - email not found: {} [correlationId: {}]", data.email(), correlationId);
             recordFailedAttempt(data.email(), "Email not found in any user type", correlationId);
             throw new AuthenticationException(ErrorCode.AUTH_INVALID_CREDENTIALS);
         }
 
+        BaseUser user = optionalUser.get();
         // Chama o método de login apropriado com base no tipo de utilizador
         if (user instanceof User) {
             return loginUser(data);
@@ -517,12 +519,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
      * @param email the user's email address
      * @return the BaseUser if found, null otherwise
      */
-    private BaseUser findUserByEmailAcrossRepositories(String email) {
+    private Optional<BaseUser> findUserByEmailAcrossRepositories(String email) {
         return userRepository.findByEmail(email)
                 .map(BaseUser.class::cast)
                 .or(() -> ongRepository.findByEmail(email).map(BaseUser.class::cast))
-                .or(() -> protetorRepository.findByEmail(email).map(BaseUser.class::cast))
-                .orElse(null);
+                .or(() -> protetorRepository.findByEmail(email).map(BaseUser.class::cast));
+    }
     }
 
     /**

@@ -11,27 +11,18 @@ rm -rf target/
 
 # 2. Build
 echo "🔨 Executando build..."
+trap 'echo "❌ Build falhou!"' ERR
 ./mvnw clean compile
-if [ $? -ne 0 ]; then
-    echo "❌ Build falhou!"
-    exit 1
-fi
 
 # 3. Testes
 echo "🧪 Executando testes..."
+trap 'echo "❌ Testes falharam!"' ERR
 ./mvnw test
-if [ $? -ne 0 ]; then
-    echo "❌ Testes falharam!"
-    exit 1
-fi
 
 # 4. Docker
 echo "🐳 Testando Docker..."
+trap 'echo "❌ Docker build falhou!"' ERR
 docker compose build
-if [ $? -ne 0 ]; then
-    echo "❌ Docker build falhou!"
-    exit 1
-fi
 
 # 5. Verificar arquivos não commitados
 echo "📝 Verificando status do git..."
