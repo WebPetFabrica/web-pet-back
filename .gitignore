@@ -1,27 +1,42 @@
-# Eclipse
+# Ficheiros e diretórios gerados pelo Build
+/target/
+/build/
+
+# Ficheiros de Log
+*.log
+logs/
+
+# Ficheiros de IDE
+.idea/
+*.iml
+*.iws
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Ficheiros do sistema operacional
+.DS_Store
+Thumbs.db
+
+# Arquivos de dependências do Maven
+/lib/
+/m2-repo/
+
+# Ficheiros gerados pelo Eclipse
 .classpath
 .project
 .settings/
 
-# IntelliJ
-.idea/
-*.iml
-*.iws
-out/
+# Ficheiros de configuração do NetBeans
+/nbproject/private/
+/build/
+/nbbuild/
+/dist/
+/nbdist/
+.nb-gradle/
 
-# Maven
-/target/
-
-# Build output
-/bin/
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-
-# User-specific files
-*.swp
-*.swo
+# Ficheiros de passwords ou segredos locais (se houver)
+local.properties
+application-local.properties
