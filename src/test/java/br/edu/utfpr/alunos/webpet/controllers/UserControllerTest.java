@@ -32,7 +32,7 @@ class UserControllerTest {
     void shouldReturnUserProfileForAuthenticatedUser() throws Exception {
         // Prepara um DTO de exemplo para o mock retornar
         UserResponseDTO sampleUser = new UserResponseDTO("1", "testuser", "test@user.com", "Sample bio", "http://avatar.url", "1234567890");
-        when(userService.getUserProfile("test@user.com")).thenReturn(sampleUser);
+        when(userService.getCurrentUserProfile("test@user.com")).thenReturn(sampleUser);
 
         mockMvc.perform(get("/api/users/me"))
                 .andExpect(status().isOk())
@@ -53,7 +53,7 @@ class UserControllerTest {
     @Test
     @WithMockUser(username="inactive@user.com", roles={"USER"})
     void shouldReturnForbiddenWhenUserIsInactive() throws Exception {
-        when(userService.getUserProfile(anyString())).thenThrow(new AuthenticationException("Utilizador inativo ou não autorizado"));
+        when(userService.getCurrentUserProfile(anyString())).thenThrow(new AuthenticationException("Utilizador inativo ou não autorizado"));
 
         mockMvc.perform(get("/api/users/me"))
                 .andExpect(status().isForbidden());
