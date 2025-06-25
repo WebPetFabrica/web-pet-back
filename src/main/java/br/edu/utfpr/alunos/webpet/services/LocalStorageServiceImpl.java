@@ -37,10 +37,10 @@ public class LocalStorageServiceImpl implements FileStorageService {
             String fileExtension = "";
             if (originalFilename != null && originalFilename.contains(".")) {
                 fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
-            fileExtension = fileExtension.toLowerCase();
-            if (!fileExtension.matches("\\.(jpg|jpeg|png)$")) {
-                throw new RuntimeException("Extensão de arquivo inválida: " + fileExtension);
-            }
+                fileExtension = fileExtension.toLowerCase();
+                if (!fileExtension.matches("\\.(jpg|jpeg|png)$")) {
+                    throw new RuntimeException("Extensão de arquivo inválida: " + fileExtension);
+                }
             }
             String uniqueFilename = UUID.randomUUID().toString() + fileExtension;
 
