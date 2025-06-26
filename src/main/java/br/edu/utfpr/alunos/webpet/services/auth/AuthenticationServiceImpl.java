@@ -68,7 +68,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 throw new IllegalStateException("Authentication succeeded but no user principal was returned");
             }
             
-            // Record successful login attempt (after validating user)
+            // Record successful login attempt (after successful authentication)
             loginAttemptService.recordSuccessfulLogin(data.email());
             
             // Generate JWT token

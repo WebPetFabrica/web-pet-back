@@ -142,27 +142,138 @@ Para garantir a qualidade e a estabilidade do código, execute a suíte de teste
 ├── src
 │   ├── main
 │   │   ├── java/br/edu/utfpr/alunos/webpet
-│   │   │   ├── controllers/       # Endpoints da API REST
-│   │   │   ├── domain/            # Entidades JPA (User, Pet, etc.)
-│   │   │   ├── dto/               # Objetos de Transferência de Dados
-│   │   │   ├── infra/             # Infraestrutura (Segurança, Config, Exceções)
-│   │   │   │   └── security/      # Configurações de segurança e JWT
-│   │   │   ├── mapper/            # Mapeadores (MapStruct)
-│   │   │   ├── repositories/      # Interfaces do Spring Data JPA
-│   │   │   └── services/          # Lógica de negócio
+│   │   │   ├── WebPetApplication.java     # Classe principal da aplicação
+│   │   │   ├── config/                    # Configurações gerais
+│   │   │   │   └── WebConfig.java         # Configurações web
+│   │   │   ├── controllers/               # Camada de apresentação - Endpoints REST
+│   │   │   │   ├── AdminController.java   # Endpoints administrativos
+│   │   │   │   ├── AdoptionController.java # Gestão de adoções
+│   │   │   │   ├── AnimalController.java  # CRUD de animais
+│   │   │   │   ├── AuthController.java    # Autenticação e registro
+│   │   │   │   ├── DonationController.java # Sistema de doações
+│   │   │   │   ├── ONGController.java     # Gestão de ONGs
+│   │   │   │   ├── PetController.java     # CRUD de pets
+│   │   │   │   └── UserController.java    # Gestão de usuários
+│   │   │   ├── domain/                    # Camada de domínio - Entidades JPA
+│   │   │   │   ├── adoption/              # Domínio de adoções
+│   │   │   │   │   ├── AdoptionRequest.java
+│   │   │   │   │   └── AdoptionStatus.java
+│   │   │   │   ├── donation/              # Domínio de doações
+│   │   │   │   │   ├── Donation.java
+│   │   │   │   │   ├── StatusDoacao.java
+│   │   │   │   │   └── TipoDoacao.java
+│   │   │   │   ├── pet/                   # Domínio de pets
+│   │   │   │   │   ├── Especie.java
+│   │   │   │   │   ├── Genero.java
+│   │   │   │   │   ├── Pet.java
+│   │   │   │   │   ├── Porte.java
+│   │   │   │   │   └── StatusAdocao.java
+│   │   │   │   └── user/                  # Domínio de usuários
+│   │   │   │       ├── Animal.java
+│   │   │   │       ├── BaseUser.java      # Classe base para usuários
+│   │   │   │       ├── EmailConfirmation.java
+│   │   │   │       ├── ONG.java
+│   │   │   │       ├── PasswordHistory.java
+│   │   │   │       ├── Protetor.java
+│   │   │   │       ├── User.java
+│   │   │   │       └── UserType.java
+│   │   │   ├── dto/                       # Objetos de Transferência de Dados
+│   │   │   │   ├── adoption/              # DTOs de adoção
+│   │   │   │   ├── auth/                  # DTOs de autenticação
+│   │   │   │   ├── donation/              # DTOs de doação
+│   │   │   │   ├── pet/                   # DTOs de pets
+│   │   │   │   └── user/                  # DTOs de usuários
+│   │   │   │       └── v1/                # Versionamento de API
+│   │   │   ├── infra/                     # Infraestrutura e componentes transversais
+│   │   │   │   ├── config/                # Configurações de infraestrutura
+│   │   │   │   │   ├── CacheConfig.java   # Configuração de cache
+│   │   │   │   │   ├── JpaOptimizationConfig.java
+│   │   │   │   │   ├── OpenApiConfig.java # Configuração do Swagger
+│   │   │   │   │   └── PaginationConfig.java
+│   │   │   │   ├── cors/                  # Configurações CORS
+│   │   │   │   ├── exception/             # Tratamento global de exceções
+│   │   │   │   │   ├── GlobalExceptionHandler.java
+│   │   │   │   │   ├── BusinessException.java
+│   │   │   │   │   └── ErrorResponse.java
+│   │   │   │   ├── logging/               # Sistema de auditoria e logs
+│   │   │   │   │   ├── AuditLogger.java
+│   │   │   │   │   ├── CorrelationIdInterceptor.java
+│   │   │   │   │   └── ExceptionLogger.java
+│   │   │   │   ├── openapi/               # Exemplos para documentação
+│   │   │   │   ├── security/              # Segurança e autenticação
+│   │   │   │   │   ├── SecurityConfig.java # Configuração Spring Security
+│   │   │   │   │   ├── TokenService.java   # Gestão de tokens JWT
+│   │   │   │   │   ├── SecurityFilter.java # Filtro de segurança
+│   │   │   │   │   ├── RateLimitFilter.java # Rate limiting
+│   │   │   │   │   └── CustomUserDetailsService.java
+│   │   │   │   └── validation/            # Validadores customizados
+│   │   │   │       ├── CPF.java
+│   │   │   │       ├── CNPJ.java
+│   │   │   │       ├── ValidEmail.java
+│   │   │   │       └── ValidPassword.java
+│   │   │   ├── mapper/                    # Mapeadores MapStruct
+│   │   │   │   ├── DonationMapper.java
+│   │   │   │   ├── PetMapper.java
+│   │   │   │   └── UserMapper.java
+│   │   │   ├── repositories/              # Camada de acesso a dados - Spring Data JPA
+│   │   │   │   ├── AdoptionRequestRepository.java
+│   │   │   │   ├── BaseUserRepository.java
+│   │   │   │   ├── DonationRepository.java
+│   │   │   │   ├── ONGRepository.java
+│   │   │   │   ├── PetRepository.java
+│   │   │   │   ├── UserRepository.java
+│   │   │   │   └── projections/           # Projeções JPA
+│   │   │   │       └── UserProjections.java
+│   │   │   ├── services/                  # Camada de negócio - Lógica de aplicação
+│   │   │   │   ├── AnimalService.java
+│   │   │   │   ├── FileStorageService.java
+│   │   │   │   ├── auth/                  # Serviços de autenticação
+│   │   │   │   │   ├── AuthenticationService.java
+│   │   │   │   │   ├── AuthenticationServiceImpl.java
+│   │   │   │   │   ├── LoginAttemptService.java
+│   │   │   │   │   └── UserRegistrationService.java
+│   │   │   │   ├── donation/              # Serviços de doação
+│   │   │   │   ├── ong/                   # Serviços específicos de ONGs
+│   │   │   │   ├── payment/               # Integração com gateways de pagamento
+│   │   │   │   ├── pet/                   # Serviços de pets
+│   │   │   │   ├── user/                  # Serviços de usuários
+│   │   │   │   └── validation/            # Serviços de validação
+│   │   │   │       ├── CommonPasswordService.java
+│   │   │   │       ├── EmailValidationService.java
+│   │   │   │       └── PasswordPolicyService.java
+│   │   │   └── utils/                     # Utilitários e enums
+│   │   │       └── enums/
 │   │   └── resources
-│   │       ├── db/migration/      # Scripts de migração (Flyway)
-│   │       ├── application.properties
-│   │       └── logback-spring.xml # Configuração de logs
-│   └── test/                    # Testes unitários e de integração
+│   │       ├── db/migration/              # Scripts de migração Flyway
+│   │       │   ├── V1__initial_schema.sql
+│   │       │   ├── V2__security_enhancements.sql
+│   │       │   ├── V3__create_pets_and_donations_tables.sql
+│   │       │   ├── V4__add_user_profile_fields.sql
+│   │       │   └── V5__create_performance_indexes.sql
+│   │       ├── application.properties     # Configurações da aplicação
+│   │       └── logback-spring.xml         # Configuração de logs
+│   └── test/                              # Testes unitários e de integração
+│       ├── java/br/edu/utfpr/alunos/webpet
+│       │   ├── WebPetApplicationTests.java
+│       │   ├── controllers/               # Testes de controllers
+│       │   │   └── UserControllerTest.java
+│       │   └── services/                  # Testes de serviços
+│       │       └── auth/                  # Testes de autenticação
+│       │           ├── AuthenticationServiceTest.java
+│       │           └── UserRegistrationServiceTest.java
+│       └── resources
+│           └── application-test.properties # Configurações para testes
+├── database/                              # Configurações de banco de dados
+│   └── init/                              # Scripts de inicialização
 ├── .dockerignore
 ├── .gitignore
-├── docker-compose.yml
-├── Dockerfile
-├── mvnw                         # Maven wrapper
-├── pom.xml                      # Dependências e build do projeto
-├── generate-jwt-secret.sh       # Script para gerar JWT secret seguro
-└── README.md
+├── docker-compose.yml                     # Orquestração Docker
+├── Dockerfile                             # Imagem Docker da aplicação
+├── mvnw                                   # Maven wrapper (Unix)
+├── mvnw.cmd                               # Maven wrapper (Windows)
+├── pom.xml                                # Configuração Maven e dependências
+├── generate-jwt-secret.sh                 # Script para gerar JWT secret seguro
+└── README.md                              # Documentação do projeto
 
 ```
 

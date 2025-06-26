@@ -295,10 +295,10 @@ class AuthenticationServiceTest {
             assertThat(result.tokenType()).isEqualTo("Bearer");
             
             // Verify all dependencies were called in correct order
-            var inOrder = inOrder(authenticationManager, tokenService, loginAttemptService);
+            var inOrder = inOrder(authenticationManager, loginAttemptService, tokenService);
             inOrder.verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
-            inOrder.verify(tokenService).generateToken(mockUser);
             inOrder.verify(loginAttemptService).recordSuccessfulLogin(VALID_EMAIL);
+            inOrder.verify(tokenService).generateToken(mockUser);
         }
     }
 }
