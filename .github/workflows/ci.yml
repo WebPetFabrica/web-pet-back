@@ -5,7 +5,7 @@ name: Validação de Build e Testes em Java
 on:
   # Executa sempre que houver um push para esta branch específica
   push:
-    branches: [ "feat/user-profiles-corrigido" ]
+    branches: [ "feat/user-profiles-rebuilt" ]
   # Também executa quando um Pull Request é aberto para as branches principais
   pull_request:
     branches: [ "main", "develop" ]
