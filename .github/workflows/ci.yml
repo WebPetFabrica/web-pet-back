@@ -33,7 +33,10 @@ jobs:
       - name: Dar permissão de execução ao mvnw
         run: chmod +x ./mvnw
 
-      # 4. Executa o seu script de validação completo
-      - name: Executar o script de validação (Build e Testes)
-        run: ./validate-pr.sh
+      # 4. Executa build e testes (sem Docker para CI)
+      - name: Executar build
+        run: ./mvnw clean compile
+      
+      - name: Executar testes
+        run: ./mvnw test
 
