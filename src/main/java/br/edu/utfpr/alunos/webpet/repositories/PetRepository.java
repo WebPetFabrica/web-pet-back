@@ -15,6 +15,7 @@ import br.edu.utfpr.alunos.webpet.domain.pet.Especie;
 import br.edu.utfpr.alunos.webpet.domain.pet.Genero;
 import br.edu.utfpr.alunos.webpet.domain.pet.Pet;
 import br.edu.utfpr.alunos.webpet.domain.pet.Porte;
+import br.edu.utfpr.alunos.webpet.dto.pet.PetFilterDTO;
 
 /**
  * Repository interface for Pet entity operations.
@@ -58,7 +59,8 @@ public interface PetRepository extends JpaRepository<Pet, String>, JpaSpecificat
      * @param responsavelId ID of the responsible user (ONG or PROTETOR)
      * @return list of pets managed by the user
      */
-    List<Pet> findByResponsavelId(String responsavelId);
+    @Query("SELECT p FROM Pet p WHERE p.responsavelId = :responsavelId ORDER BY p.createdAt DESC")
+    List<Pet> findByResponsavelId(@Param("responsavelId") String responsavelId);
     
     /**
      * Find all pets managed by a specific responsible user with pagination.
@@ -67,7 +69,9 @@ public interface PetRepository extends JpaRepository<Pet, String>, JpaSpecificat
      * @param pageable pagination information
      * @return page of pets managed by the user
      */
-    Page<Pet> findByResponsavelId(String responsavelId, Pageable pageable);
+    @Query(value = "SELECT p FROM Pet p WHERE p.responsavelId = :responsavelId ORDER BY p.createdAt DESC",
+           countQuery = "SELECT COUNT(p) FROM Pet p WHERE p.responsavelId = :responsavelId")
+    Page<Pet> findByResponsavelId(@Param("responsavelId") String responsavelId, Pageable pageable);
     
     /**
      * Find available pets by species.
@@ -120,59 +124,49 @@ public interface PetRepository extends JpaRepository<Pet, String>, JpaSpecificat
     Page<Pet> searchAvailablePets(@Param("termo") String termo, Pageable pageable);
     
     /**
-     * Find pets with multiple filters.
+     * Find pets with multiple filters using optimized query with JOIN FETCH.
      * 
-     * @param especie species filter (optional)
-     * @param porte size filter (optional)
-     * @param genero gender filter (optional)
-     * @param idadeMinima minimum age filter (optional)
-     * @param idadeMaxima maximum age filter (optional)
+     * @param filters filter criteria for pet search
      * @param pageable pagination information
      * @return page of pets matching the filters
      */
-    @Query("""
-        SELECT p FROM Pet p 
+    @Query(value = """
+        SELECT p FROM Pet p
         WHERE p.disponivel = true
-        AND (:especie IS NULL OR p.especie = :especie)
-        AND (:porte IS NULL OR p.porte = :porte)
-        AND (:genero IS NULL OR p.genero = :genero)
-        AND (:idadeMinima IS NULL OR p.idade >= :idadeMinima)
-        AND (:idadeMaxima IS NULL OR p.idade <= :idadeMaxima)
+        AND (:#{#filters.especie} IS NULL OR p.especie = :#{#filters.especie})
+        AND (:#{#filters.porte} IS NULL OR p.porte = :#{#filters.porte})
+        AND (:#{#filters.genero} IS NULL OR p.genero = :#{#filters.genero})
+        AND (:#{#filters.idadeMinima} IS NULL OR p.idade >= :#{#filters.idadeMinima})
+        AND (:#{#filters.idadeMaxima} IS NULL OR p.idade <= :#{#filters.idadeMaxima})
         ORDER BY p.createdAt DESC
+        """,
+        countQuery = """
+        SELECT COUNT(p) FROM Pet p
+        WHERE p.disponivel = true
+        AND (:#{#filters.especie} IS NULL OR p.especie = :#{#filters.especie})
+        AND (:#{#filters.porte} IS NULL OR p.porte = :#{#filters.porte})
+        AND (:#{#filters.genero} IS NULL OR p.genero = :#{#filters.genero})
+        AND (:#{#filters.idadeMinima} IS NULL OR p.idade >= :#{#filters.idadeMinima})
+        AND (:#{#filters.idadeMaxima} IS NULL OR p.idade <= :#{#filters.idadeMaxima})
         """)
-    Page<Pet> findAvailablePetsWithFilters(
-            @Param("especie") Especie especie,
-            @Param("porte") Porte porte,
-            @Param("genero") Genero genero,
-            @Param("idadeMinima") Integer idadeMinima,
-            @Param("idadeMaxima") Integer idadeMaxima,
-            Pageable pageable);
+    Page<Pet> findAvailablePetsWithFilters(@Param("filters") PetFilterDTO filters, Pageable pageable);
     
     /**
      * Count available pets with filters.
      * 
-     * @param especie species filter (optional)
-     * @param porte size filter (optional)
-     * @param genero gender filter (optional)
-     * @param idadeMinima minimum age filter (optional)
-     * @param idadeMaxima maximum age filter (optional)
+     * @param filters filter criteria for pet search
      * @return count of pets matching the filters
      */
     @Query("""
         SELECT COUNT(p) FROM Pet p 
         WHERE p.disponivel = true
-        AND (:especie IS NULL OR p.especie = :especie)
-        AND (:porte IS NULL OR p.porte = :porte)
-        AND (:genero IS NULL OR p.genero = :genero)
-        AND (:idadeMinima IS NULL OR p.idade >= :idadeMinima)
-        AND (:idadeMaxima IS NULL OR p.idade <= :idadeMaxima)
+        AND (:#{#filters.especie} IS NULL OR p.especie = :#{#filters.especie})
+        AND (:#{#filters.porte} IS NULL OR p.porte = :#{#filters.porte})
+        AND (:#{#filters.genero} IS NULL OR p.genero = :#{#filters.genero})
+        AND (:#{#filters.idadeMinima} IS NULL OR p.idade >= :#{#filters.idadeMinima})
+        AND (:#{#filters.idadeMaxima} IS NULL OR p.idade <= :#{#filters.idadeMaxima})
         """)
-    Long countAvailablePetsWithFilters(
-            @Param("especie") Especie especie,
-            @Param("porte") Porte porte,
-            @Param("genero") Genero genero,
-            @Param("idadeMinima") Integer idadeMinima,
-            @Param("idadeMaxima") Integer idadeMaxima);
+    Long countAvailablePetsWithFilters(@Param("filters") PetFilterDTO filters);
     
     /**
      * Check if a pet with the given name already exists for a responsible user.
@@ -182,7 +176,8 @@ public interface PetRepository extends JpaRepository<Pet, String>, JpaSpecificat
      * @param responsavelId responsible user ID
      * @return true if a pet with the name exists for the user
      */
-    boolean existsByNomeAndResponsavelId(String nome, String responsavelId);
+    @Query("SELECT COUNT(p) > 0 FROM Pet p WHERE p.nome = :nome AND p.responsavelId = :responsavelId")
+    boolean existsByNomeAndResponsavelId(@Param("nome") String nome, @Param("responsavelId") String responsavelId);
     
     /**
      * Count total pets managed by a responsible user.
@@ -190,7 +185,8 @@ public interface PetRepository extends JpaRepository<Pet, String>, JpaSpecificat
      * @param responsavelId responsible user ID
      * @return total count of pets
      */
-    Long countByResponsavelId(String responsavelId);
+    @Query("SELECT COUNT(p) FROM Pet p WHERE p.responsavelId = :responsavelId")
+    Long countByResponsavelId(@Param("responsavelId") String responsavelId);
     
     /**
      * Count available pets managed by a responsible user.
@@ -198,5 +194,6 @@ public interface PetRepository extends JpaRepository<Pet, String>, JpaSpecificat
      * @param responsavelId responsible user ID
      * @return count of available pets
      */
-    Long countByResponsavelIdAndDisponivelTrue(String responsavelId);
+    @Query("SELECT COUNT(p) FROM Pet p WHERE p.responsavelId = :responsavelId AND p.disponivel = true")
+    Long countByResponsavelIdAndDisponivelTrue(@Param("responsavelId") String responsavelId);
 }

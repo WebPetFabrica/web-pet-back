@@ -38,7 +38,7 @@ import jakarta.validation.Valid;
  * 
  */
 @RestController
-@RequestMapping("/doacoes")
+@RequestMapping("/api/v1/doacoes")
 @Tag(name = "Donations", description = "Endpoints para gerenciamento de doações")
 public class DonationController {
     

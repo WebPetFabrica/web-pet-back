@@ -48,6 +48,6 @@ public class TokenService {
     }
 
     private Instant generationExpirationDate() {
-        return ZonedDateTime.now(ZoneId.of(this.timezone)).plusHours(2).toInstant();
+        return ZonedDateTime.now(ZoneId.of(this.timezone)).plusMinutes(30).toInstant();
     }
 }

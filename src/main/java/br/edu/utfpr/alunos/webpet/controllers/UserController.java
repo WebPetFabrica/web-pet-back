@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/api/v1/user")
 @RequiredArgsConstructor
 @Tag(name = "Usuário", description = "Endpoints para gerenciamento de perfil do usuário")
 @SecurityRequirement(name = "bearerAuth")

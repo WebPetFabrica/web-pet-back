@@ -5,13 +5,17 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import br.edu.utfpr.alunos.webpet.domain.user.BaseUser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -100,10 +104,10 @@ public class Pet {
     private Integer idade;
     
     /**
-     * ID of the responsible user (ONG or PROTETOR).
-     * References the user responsible for the pet's care.
+     * The responsible user (ONG or PROTETOR) ID for the pet's care.
+     * References a BaseUser ID through any of the user tables.
      */
-    @NotBlank(message = "Responsável é obrigatório")
+    @NotNull(message = "Responsável é obrigatório")
     @Column(name = "responsavel_id", nullable = false)
     private String responsavelId;
     
@@ -146,7 +150,7 @@ public class Pet {
      * @param porte pet's size
      * @param genero pet's gender
      * @param idade pet's age in years
-     * @param responsavelId ID of the responsible user
+     * @param responsavelId the responsible user ID
      */
     public Pet(String nome, Especie especie, Porte porte, Genero genero, 
                Integer idade, String responsavelId) {
@@ -167,7 +171,7 @@ public class Pet {
      * @param porte pet's size
      * @param genero pet's gender
      * @param idade pet's age in years
-     * @param responsavelId ID of the responsible user
+     * @param responsavelId the responsible user ID
      * @param descricao optional description
      */
     public Pet(String nome, Especie especie, Porte porte, Genero genero, 

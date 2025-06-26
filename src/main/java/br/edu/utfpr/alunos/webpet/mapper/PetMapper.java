@@ -21,17 +21,19 @@ public interface PetMapper {
     
     /**
      * Converts a Pet entity to a response DTO.
+     * Note: responsavelNome will be populated separately by the service layer.
      * 
      * @param pet the pet entity
      * @return the response DTO
      */
+    @Mapping(target = "responsavelNome", ignore = true)
     PetResponseDTO toResponseDTO(Pet pet);
     
     /**
      * Creates a Pet entity from a create request DTO.
      * 
      * @param createDTO the create request DTO
-     * @param responsavelId the ID of the responsible user
+     * @param responsavelId the responsible user ID
      * @return the new pet entity
      */
     @Mapping(target = "id", ignore = true)

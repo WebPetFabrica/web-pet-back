@@ -40,3 +40,18 @@ Thumbs.db
 # Ficheiros de passwords ou segredos locais (se houver)
 local.properties
 application-local.properties
+
+# Environment files
+.env
+.env.*
+!/.env.example
+
+# Local Overrides
+docker-compose.override.yml
+application-*.properties
+!application-test.properties
+
+# SSL Certificates
+*.pem
+*.key
+*.crt

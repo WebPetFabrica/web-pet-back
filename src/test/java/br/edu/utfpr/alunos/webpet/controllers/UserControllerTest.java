@@ -38,7 +38,7 @@ class UserControllerTest {
         UserResponseDTO sampleUser = new UserResponseDTO("1", "test@user.com", "testuser", UserType.USER, "test@user.com", true);
         when(userService.getCurrentUserProfile("test@user.com")).thenReturn(sampleUser);
 
-        mockMvc.perform(get("/user"))
+        mockMvc.perform(get("/api/v1/user"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("1"))
                 .andExpect(jsonPath("$.displayName").value("testuser"))
@@ -50,7 +50,7 @@ class UserControllerTest {
 
     @Test
     void shouldReturnUnauthorizedWhenNoUserIsAuthenticated() throws Exception {
-        mockMvc.perform(get("/user"))
+        mockMvc.perform(get("/api/v1/user"))
                 .andExpect(status().isForbidden());
     }
 
@@ -59,7 +59,7 @@ class UserControllerTest {
     void shouldReturnForbiddenWhenUserIsInactive() throws Exception {
         when(userService.getCurrentUserProfile(anyString())).thenThrow(new AuthenticationException(ErrorCode.AUTH_ACCOUNT_INACTIVE));
 
-        mockMvc.perform(get("/user"))
+        mockMvc.perform(get("/api/v1/user"))
                 .andExpect(status().isUnauthorized());
     }
 }

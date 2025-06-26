@@ -47,7 +47,7 @@ import jakarta.validation.Valid;
  * 
  */
 @RestController
-@RequestMapping("/pets")
+@RequestMapping("/api/v1/pets")
 @Tag(name = "Pets", description = "Endpoints para gerenciamento de pets")
 public class PetController {
     

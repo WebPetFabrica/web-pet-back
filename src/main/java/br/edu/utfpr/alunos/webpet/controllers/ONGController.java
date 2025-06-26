@@ -33,7 +33,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/ongs")
+@RequestMapping("/api/v1/ongs")
 @RequiredArgsConstructor
 @Tag(name = "ONGs", description = "Endpoints para gerenciamento de ONGs")
 public class ONGController {

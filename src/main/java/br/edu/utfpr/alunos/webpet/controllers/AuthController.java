@@ -7,6 +7,7 @@ import br.edu.utfpr.alunos.webpet.repositories.ONGRepository; // FROM FEATURE
 import br.edu.utfpr.alunos.webpet.repositories.ProtetorRepository; // FROM FEATURE
 
 import br.edu.utfpr.alunos.webpet.services.auth.AuthenticationService; // FROM FEATURE
+import br.edu.utfpr.alunos.webpet.services.auth.UserRegistrationService; // NEW
 import br.edu.utfpr.alunos.webpet.services.validation.PasswordHistoryService; // FROM FEATURE
 // import br.edu.utfpr.alunos.webpet.services.validation.EmailConfirmationService; // FROM FEATURE - NOT IMPLEMENTED YET
 
@@ -37,7 +38,7 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 @Tag(name = "Authentication", description = "Endpoints para autenticação e registro de usuários")
 public class AuthController {
@@ -49,6 +50,7 @@ public class AuthController {
     private final ProtetorRepository protetorRepository; // FROM FEATURE
     
     private final AuthenticationService authenticationService; // FROM FEATURE (novo)
+    private final UserRegistrationService userRegistrationService; // NEW
     private final PasswordHistoryService passwordHistoryService; // FROM FEATURE
     // private final EmailConfirmationService emailConfirmationService; // FROM FEATURE - NOT IMPLEMENTED YET
     
@@ -96,7 +98,7 @@ public class AuthController {
             log.info("User registration attempt for email: {} [correlationId: {}]", 
                 registerRequest.email(), correlationId);
             
-            AuthResponseDTO response = authenticationService.registerUser(registerRequest);
+            AuthResponseDTO response = userRegistrationService.registerUser(registerRequest);
             
             log.info("User registration successful for email: {} [correlationId: {}]", 
                 registerRequest.email(), correlationId);
@@ -121,7 +123,7 @@ public class AuthController {
             log.info("ONG registration attempt for email: {} [correlationId: {}]", 
                 registerRequest.email(), correlationId);
             
-            AuthResponseDTO response = authenticationService.registerONG(registerRequest);
+            AuthResponseDTO response = userRegistrationService.registerONG(registerRequest);
             
             log.info("ONG registration successful for email: {} [correlationId: {}]", 
                 registerRequest.email(), correlationId);
@@ -146,7 +148,7 @@ public class AuthController {
             log.info("Protetor registration attempt for email: {} [correlationId: {}]", 
                 registerRequest.email(), correlationId);
             
-            AuthResponseDTO response = authenticationService.registerProtetor(registerRequest);
+            AuthResponseDTO response = userRegistrationService.registerProtetor(registerRequest);
             
             log.info("Protetor registration successful for email: {} [correlationId: {}]", 
                 registerRequest.email(), correlationId);

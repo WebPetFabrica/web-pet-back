@@ -71,7 +71,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         String key = clientIp + ":" + endpoint;
         
         return rateLimitCache.computeIfAbsent(key, k -> {
-            if (endpoint.contains("/auth/")) {
+            if (endpoint.contains("/api/v1/auth/")) {
                 log.debug("Creating auth rate limit bucket for: {}", key);
                 return rateLimitConfig.createAuthBucket();
             }

@@ -22,7 +22,7 @@ import org.slf4j.MDC;
 
 @Slf4j
 @RestController
-@RequestMapping("/adocoes")
+@RequestMapping("/api/v1/adocoes")
 @RequiredArgsConstructor
 @Tag(name = "Adoção", description = "Endpoints para gerenciamento de solicitações de adoção")
 @SecurityRequirement(name = "bearerAuth")

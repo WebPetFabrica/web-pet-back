@@ -2,16 +2,21 @@ package br.edu.utfpr.alunos.webpet.services.auth;
 
 import br.edu.utfpr.alunos.webpet.dto.auth.AuthResponseDTO;
 import br.edu.utfpr.alunos.webpet.dto.auth.LoginRequestDTO;
-import br.edu.utfpr.alunos.webpet.dto.auth.ONGRegisterDTO;
-import br.edu.utfpr.alunos.webpet.dto.auth.ProtetorRegisterDTO;
-import br.edu.utfpr.alunos.webpet.dto.auth.UserRegisterDTO;
 
+/**
+ * Service interface for user authentication operations.
+ * 
+ * <p>This interface defines the contract for authentication-related operations,
+ * focusing solely on login functionality. Registration operations have been
+ * moved to UserRegistrationService to follow the Single Responsibility Principle.
+ */
 public interface AuthenticationService {
+    
+    /**
+     * Authenticates a user with the provided credentials.
+     * 
+     * @param data the login request containing email and password
+     * @return authentication response with user details and token
+     */
     AuthResponseDTO authenticate(LoginRequestDTO data);
-    AuthResponseDTO loginUser(LoginRequestDTO data);
-    AuthResponseDTO loginOng(LoginRequestDTO data);
-    AuthResponseDTO loginProtetor(LoginRequestDTO data);
-    AuthResponseDTO registerUser(UserRegisterDTO data);
-    AuthResponseDTO registerONG(ONGRegisterDTO data);
-    AuthResponseDTO registerProtetor(ProtetorRegisterDTO data);
 }

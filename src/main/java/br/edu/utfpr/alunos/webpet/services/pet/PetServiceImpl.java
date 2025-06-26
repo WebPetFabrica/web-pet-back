@@ -16,6 +16,7 @@ import br.edu.utfpr.alunos.webpet.domain.pet.Especie;
 import br.edu.utfpr.alunos.webpet.domain.pet.Genero;
 import br.edu.utfpr.alunos.webpet.domain.pet.Pet;
 import br.edu.utfpr.alunos.webpet.domain.pet.Porte;
+import br.edu.utfpr.alunos.webpet.domain.user.BaseUser;
 import br.edu.utfpr.alunos.webpet.dto.pet.PetCreateRequestDTO;
 import br.edu.utfpr.alunos.webpet.dto.pet.PetFilterDTO;
 import br.edu.utfpr.alunos.webpet.dto.pet.PetResponseDTO;
@@ -23,6 +24,7 @@ import br.edu.utfpr.alunos.webpet.dto.pet.PetUpdateRequestDTO;
 import br.edu.utfpr.alunos.webpet.infra.exception.BusinessException;
 import br.edu.utfpr.alunos.webpet.infra.exception.ErrorCode;
 import br.edu.utfpr.alunos.webpet.mapper.PetMapper;
+import br.edu.utfpr.alunos.webpet.repositories.BaseUserRepository;
 import br.edu.utfpr.alunos.webpet.repositories.PetRepository;
 
 /**
@@ -41,10 +43,12 @@ public class PetServiceImpl implements PetService {
     
     private final PetRepository petRepository;
     private final PetMapper petMapper;
+    private final BaseUserRepository baseUserRepository;
     
-    public PetServiceImpl(PetRepository petRepository, PetMapper petMapper) {
+    public PetServiceImpl(PetRepository petRepository, PetMapper petMapper, BaseUserRepository baseUserRepository) {
         this.petRepository = petRepository;
         this.petMapper = petMapper;
+        this.baseUserRepository = baseUserRepository;
     }
     
     @Override
@@ -54,6 +58,10 @@ public class PetServiceImpl implements PetService {
             MDC.put("responsavelId", responsavelId);
             
             logger.info("Creating pet for responsavel: {}", responsavelId);
+            
+            // Find the responsible user
+            BaseUser responsavel = baseUserRepository.findByIdAndActiveTrue(responsavelId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.BUSINESS_ERROR, "Responsável não encontrado"));
             
             // Validate if pet name already exists for this responsible user
             if (petRepository.existsByNomeAndResponsavelId(createRequest.nome(), responsavelId)) {
@@ -69,7 +77,7 @@ public class PetServiceImpl implements PetService {
             
             logger.info("Pet created successfully with ID: {}", savedPet.getId());
             
-            return petMapper.toResponseDTO(savedPet);
+            return toResponseDTOWithResponsavelName(savedPet);
             
         } finally {
             MDC.clear();
@@ -101,7 +109,7 @@ public class PetServiceImpl implements PetService {
             
             logger.info("Pet updated successfully: {}", petId);
             
-            return petMapper.toResponseDTO(savedPet);
+            return toResponseDTOWithResponsavelName(savedPet);
             
         } finally {
             MDC.clear();
@@ -141,7 +149,7 @@ public class PetServiceImpl implements PetService {
         logger.info("Finding pet by ID: {}", petId);
         
         return petRepository.findById(petId)
-            .map(petMapper::toResponseDTO);
+            .map(this::toResponseDTOWithResponsavelName);
     }
     
     @Override
@@ -150,7 +158,7 @@ public class PetServiceImpl implements PetService {
         logger.info("Finding all available pets with pagination");
         
         return petRepository.findAllAvailablePets(pageable)
-            .map(petMapper::toResponseDTO);
+            .map(this::toResponseDTOWithResponsavelName);
     }
     
     @Override
@@ -159,7 +167,7 @@ public class PetServiceImpl implements PetService {
         logger.info("Finding pets for responsavel: {}", responsavelId);
         
         return petRepository.findByResponsavelId(responsavelId, pageable)
-            .map(petMapper::toResponseDTO);
+            .map(this::toResponseDTOWithResponsavelName);
     }
     
     @Override
@@ -167,14 +175,8 @@ public class PetServiceImpl implements PetService {
     public Page<PetResponseDTO> findPetsWithFilters(PetFilterDTO filters, Pageable pageable) {
         logger.info("Finding pets with filters: {}", filters);
         
-        return petRepository.findAvailablePetsWithFilters(
-            filters.especie(),
-            filters.porte(),
-            filters.genero(),
-            filters.idadeMinima(),
-            filters.idadeMaxima(),
-            pageable
-        ).map(petMapper::toResponseDTO);
+        return petRepository.findAvailablePetsWithFilters(filters, pageable)
+            .map(this::toResponseDTOWithResponsavelName);
     }
     
     @Override
@@ -182,13 +184,7 @@ public class PetServiceImpl implements PetService {
     public Long countAvailablePetsWithFilters(PetFilterDTO filters) {
         logger.info("Counting pets with filters: {}", filters);
         
-        return petRepository.countAvailablePetsWithFilters(
-            filters.especie(),
-            filters.porte(),
-            filters.genero(),
-            filters.idadeMinima(),
-            filters.idadeMaxima()
-        );
+        return petRepository.countAvailablePetsWithFilters(filters);
     }
     
     @Override
@@ -197,7 +193,7 @@ public class PetServiceImpl implements PetService {
         logger.info("Searching pets with term: {}", searchTerm);
         
         return petRepository.searchAvailablePets(searchTerm, pageable)
-            .map(petMapper::toResponseDTO);
+            .map(this::toResponseDTOWithResponsavelName);
     }
     
     @Override
@@ -259,5 +255,36 @@ public class PetServiceImpl implements PetService {
     @Transactional(readOnly = true)
     public List<Genero> getAvailableGeneros() {
         return Arrays.asList(Genero.values());
+    }
+    
+    /**
+     * Converts a Pet entity to a response DTO and populates the responsavel name.
+     * 
+     * @param pet the pet entity
+     * @return the response DTO with responsavel name populated
+     */
+    private PetResponseDTO toResponseDTOWithResponsavelName(Pet pet) {
+        PetResponseDTO dto = petMapper.toResponseDTO(pet);
+        
+        // Get responsavel name from BaseUserRepository
+        String responsavelNome = baseUserRepository.findById(pet.getResponsavelId())
+            .map(BaseUser::getDisplayName)
+            .orElse("Usuário não encontrado");
+        
+        // Create new DTO with responsavel name populated
+        return new PetResponseDTO(
+            dto.id(),
+            dto.nome(),
+            dto.especie(),
+            dto.porte(),
+            dto.genero(),
+            dto.idade(),
+            dto.responsavelId(),
+            responsavelNome,
+            dto.disponivel(),
+            dto.descricao(),
+            dto.createdAt(),
+            dto.updatedAt()
+        );
     }
 }

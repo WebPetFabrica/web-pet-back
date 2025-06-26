@@ -8,7 +8,7 @@ Esta documentação descreve todos os endpoints disponíveis na API WebPet para 
 Endpoint para autenticação de qualquer tipo de usuário (Usuário, ONG ou Protetor).
 
 ```http
-POST /auth/login
+POST /api/v1/auth/login
 Content-Type: application/json
 ```
 
@@ -35,7 +35,7 @@ Content-Type: application/json
 Registro para usuários que desejam adotar animais.
 
 ```http
-POST /auth/register
+POST /api/v1/auth/register
 Content-Type: application/json
 ```
 
@@ -63,7 +63,7 @@ Content-Type: application/json
 Registro para organizações não-governamentais.
 
 ```http
-POST /auth/register/ong
+POST /api/v1/auth/register/ong
 Content-Type: application/json
 ```
 
@@ -93,7 +93,7 @@ Content-Type: application/json
 Registro para protetores independentes de animais.
 
 ```http
-POST /auth/register/protetor
+POST /api/v1/auth/register/protetor
 Content-Type: application/json
 ```
 
@@ -125,7 +125,7 @@ Content-Type: application/json
 Endpoint para verificar se o token JWT está válido.
 
 ```http
-GET /user
+GET /api/v1/user
 Authorization: Bearer {token}
 ```
 
@@ -221,14 +221,14 @@ Authorization: Bearer {seu_token_jwt}
 
 ### Login
 ```bash
-curl -X POST http://localhost:8081/auth/login \
+curl -X POST http://localhost:8081/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"usuario@exemplo.com","password":"senha123"}'
 ```
 
 ### Cadastro de ONG
 ```bash
-curl -X POST http://localhost:8081/auth/register/ong \
+curl -X POST http://localhost:8081/api/v1/auth/register/ong \
   -H "Content-Type: application/json" \
   -d '{"cnpj":"12345678000190","nomeOng":"ONG Teste","email":"ong@teste.com","celular":"41999999999","password":"senha123"}'
 ```
@@ -236,7 +236,7 @@ curl -X POST http://localhost:8081/auth/register/ong \
 ### Acesso Protegido
 ```bash
 curl -H "Authorization: Bearer SEU_TOKEN_JWT" \
-  http://localhost:8081/user
+  http://localhost:8081/api/v1/user
 ```
 
 ---

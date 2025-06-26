@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/admin")
+@RequestMapping("/api/v1/admin")
 @RequiredArgsConstructor
 @Tag(name = "Admin", description = "Endpoints administrativos - acesso restrito para administradores")
 @SecurityRequirement(name = "bearerAuth")

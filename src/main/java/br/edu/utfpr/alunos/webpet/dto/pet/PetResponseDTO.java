@@ -50,6 +50,9 @@ public record PetResponseDTO(
     @Schema(description = "ID of the responsible user", example = "123e4567-e89b-12d3-a456-426614174001")
     String responsavelId,
     
+    @Schema(description = "Name of the responsible user", example = "ONG Amor Animal")
+    String responsavelNome,
+    
     @Schema(description = "Whether the pet is available for adoption", example = "true")
     Boolean disponivel,
     
