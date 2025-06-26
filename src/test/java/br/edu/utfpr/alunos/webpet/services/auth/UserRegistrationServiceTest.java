@@ -79,7 +79,9 @@ class UserRegistrationServiceTest {
     void setUp() {
         // Default mock behaviors (lenient to avoid unnecessary stubbing warnings)
         lenient().when(passwordPolicyService.isValidPassword(VALID_PASSWORD)).thenReturn(true);
-        lenient().when(passwordEncoder.encode(VALID_PASSWORD)).thenReturn(ENCODED_PASSWORD);
+        lenient().when(passwordPolicyService.isValidPassword(anyString())).thenReturn(true); // Default to valid for any password
+        lenient().when(passwordPolicyService.getPasswordPolicy()).thenReturn("Password must be 8-128 characters with at least 3 of: uppercase, lowercase, numbers, special characters");
+        lenient().when(passwordEncoder.encode(anyString())).thenReturn(ENCODED_PASSWORD);
         lenient().when(tokenService.generateToken(any())).thenReturn(JWT_TOKEN);
         
         // Default email uniqueness - no existing users
@@ -199,8 +201,12 @@ class UserRegistrationServiceTest {
             // Given
             ONGRegisterDTO registerDTO = new ONGRegisterDTO(
                 "12345678901234", "Animal Care ONG", VALID_EMAIL, 
-                VALID_PASSWORD, "11999999999"
+                "11999999999", VALID_PASSWORD
             );
+            
+            // Ensure password validation passes for this specific test
+            when(passwordPolicyService.isValidPassword(VALID_PASSWORD)).thenReturn(true);
+            when(passwordEncoder.encode(VALID_PASSWORD)).thenReturn(ENCODED_PASSWORD);
             
             ONG savedONG = ONG.builder()
                 .cnpj("12345678901234")
@@ -220,6 +226,8 @@ class UserRegistrationServiceTest {
             assertThat(result.token()).isEqualTo(JWT_TOKEN);
             assertThat(result.tokenType()).isEqualTo("Bearer");
             
+            verify(passwordPolicyService).isValidPassword(VALID_PASSWORD);
+            verify(passwordEncoder).encode(VALID_PASSWORD);
             verify(ongRepository).save(any(ONG.class));
             verify(tokenService).generateToken(savedONG);
         }
@@ -230,9 +238,11 @@ class UserRegistrationServiceTest {
             // Given
             ONGRegisterDTO registerDTO = new ONGRegisterDTO(
                 "12345678901234", "Animal Care ONG", VALID_EMAIL, 
-                VALID_PASSWORD, "11999999999"
+                "11999999999", VALID_PASSWORD
             );
             
+            // Ensure password validation passes so we get to email uniqueness check
+            lenient().when(passwordPolicyService.isValidPassword(VALID_PASSWORD)).thenReturn(true);
             when(ongRepository.existsByEmail(VALID_EMAIL)).thenReturn(true);
             
             // When & Then
@@ -253,8 +263,12 @@ class UserRegistrationServiceTest {
             // Given
             ProtetorRegisterDTO registerDTO = new ProtetorRegisterDTO(
                 "João Silva", "12345678901", VALID_EMAIL, 
-                VALID_PASSWORD, "11999999999"
+                "11999999999", VALID_PASSWORD
             );
+            
+            // Ensure password validation passes for this specific test
+            when(passwordPolicyService.isValidPassword(VALID_PASSWORD)).thenReturn(true);
+            when(passwordEncoder.encode(VALID_PASSWORD)).thenReturn(ENCODED_PASSWORD);
             
             Protetor savedProtetor = Protetor.builder()
                 .nomeCompleto("João Silva")
@@ -274,6 +288,8 @@ class UserRegistrationServiceTest {
             assertThat(result.token()).isEqualTo(JWT_TOKEN);
             assertThat(result.tokenType()).isEqualTo("Bearer");
             
+            verify(passwordPolicyService).isValidPassword(VALID_PASSWORD);
+            verify(passwordEncoder).encode(VALID_PASSWORD);
             verify(protetorRepository).save(any(Protetor.class));
             verify(tokenService).generateToken(savedProtetor);
         }
@@ -284,9 +300,11 @@ class UserRegistrationServiceTest {
             // Given
             ProtetorRegisterDTO registerDTO = new ProtetorRegisterDTO(
                 "João Silva", "12345678901", VALID_EMAIL, 
-                VALID_PASSWORD, "11999999999"
+                "11999999999", VALID_PASSWORD
             );
             
+            // Ensure password validation passes so we get to email uniqueness check
+            lenient().when(passwordPolicyService.isValidPassword(VALID_PASSWORD)).thenReturn(true);
             when(protetorRepository.existsByEmail(VALID_EMAIL)).thenReturn(true);
             
             // When & Then
@@ -304,6 +322,9 @@ class UserRegistrationServiceTest {
         @Test
         @DisplayName("Should validate email uniqueness across all user types")
         void shouldValidateEmailUniquenessAcrossAllUserTypes() {
+            // Ensure password validation passes for all tests
+            when(passwordPolicyService.isValidPassword(VALID_PASSWORD)).thenReturn(true);
+            
             // Test User collision
             when(userRepository.existsByEmail(VALID_EMAIL)).thenReturn(true);
             
@@ -315,7 +336,7 @@ class UserRegistrationServiceTest {
             when(userRepository.existsByEmail(VALID_EMAIL)).thenReturn(false);
             when(ongRepository.existsByEmail(VALID_EMAIL)).thenReturn(true);
             
-            ONGRegisterDTO ongDTO = new ONGRegisterDTO("123", "ONG", VALID_EMAIL, VALID_PASSWORD, "111");
+            ONGRegisterDTO ongDTO = new ONGRegisterDTO("123", "ONG", VALID_EMAIL, "111", VALID_PASSWORD);
             assertThatThrownBy(() -> userRegistrationService.registerONG(ongDTO))
                 .isInstanceOf(BusinessException.class);
             
@@ -323,7 +344,7 @@ class UserRegistrationServiceTest {
             when(ongRepository.existsByEmail(VALID_EMAIL)).thenReturn(false);
             when(protetorRepository.existsByEmail(VALID_EMAIL)).thenReturn(true);
             
-            ProtetorRegisterDTO protetorDTO = new ProtetorRegisterDTO("Nome", "123", VALID_EMAIL, VALID_PASSWORD, "111");
+            ProtetorRegisterDTO protetorDTO = new ProtetorRegisterDTO("Nome", "123", VALID_EMAIL, "111", VALID_PASSWORD);
             assertThatThrownBy(() -> userRegistrationService.registerProtetor(protetorDTO))
                 .isInstanceOf(BusinessException.class);
         }
