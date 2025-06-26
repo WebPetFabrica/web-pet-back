@@ -134,7 +134,6 @@ Para garantir a qualidade e a estabilidade do código, execute a suíte de teste
 ./mvnw clean test
 ```
 
-O script `validate-pr.sh` também executa a limpeza, compilação e os testes, simulando um ambiente de CI.
 
 ## 📁 **Estrutura do Projeto**
 
@@ -159,22 +158,33 @@ O script `validate-pr.sh` também executa a limpeza, compilação e os testes, s
 ├── .dockerignore
 ├── .gitignore
 ├── docker-compose.yml
+├── Dockerfile
+├── mvnw                         # Maven wrapper
 ├── pom.xml                      # Dependências e build do projeto
 ├── generate-jwt-secret.sh       # Script para gerar JWT secret seguro
-├── validate-pr.sh               # Script de validação para PRs
 └── README.md
 
 ```
 
 ## 🐳 **Docker**
 
-O projeto inclui configuração completa para Docker:
+### **Pré-requisitos**
+- Docker
+- Docker Compose
 
-- **Dockerfile**: Otimizado para produção com build em múltiplos estágios
-- **docker-compose.yml**: Orquestra a aplicação e o banco PostgreSQL
-- **docker-compose.prod.yml**: Configuração específica para produção
+### **Execução**
+```bash
+docker-compose up --build
+```
 
-Para mais detalhes, consulte o arquivo [DOCKER.md](DOCKER.md).
+### **Acesso**
+- API: http://localhost:8081
+- Swagger: http://localhost:8081/swagger-ui.html
+
+### **Parar**
+```bash
+docker-compose down
+```
 
 ## 📊 **Banco de Dados**
 
