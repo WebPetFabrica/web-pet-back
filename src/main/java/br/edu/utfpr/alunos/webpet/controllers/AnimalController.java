@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/animal")
+@RequestMapping("/api/v1/animal")
 @RequiredArgsConstructor
 public class AnimalController {
     private final AnimalService animalService;

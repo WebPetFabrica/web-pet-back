@@ -1,0 +1,42 @@
+# Nome do fluxo de trabalho que aparecerá no separador "Actions" do GitHub
+name: Validação de Build e Testes em Java
+
+# Define quando este fluxo de trabalho deve ser executado
+on:
+  # Executa sempre que houver um push para esta branch específica
+  push:
+    branches: [ "feat/user-profiles-rebuilt" ]
+  # Também executa quando um Pull Request é aberto para as branches principais
+  pull_request:
+    branches: [ "main", "develop" ]
+
+# Define os trabalhos (jobs) que o fluxo de trabalho irá realizar
+jobs:
+  build-and-test:
+    # O tipo de máquina virtual onde o trabalho será executado
+    runs-on: ubuntu-latest
+
+    # A sequência de passos que o nosso job irá executar
+    steps:
+      # 1. Faz o checkout do seu código do repositório para a máquina virtual
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      # 2. Configura o ambiente Java (JDK) na máquina virtual
+      - name: Configurar o Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+
+      # 3. Dá permissão de execução ao Maven Wrapper
+      - name: Dar permissão de execução ao mvnw
+        run: chmod +x ./mvnw
+
+      # 4. Executa build e testes (sem Docker para CI)
+      - name: Executar build
+        run: ./mvnw clean compile
+      
+      - name: Executar testes
+        run: ./mvnw test
+
