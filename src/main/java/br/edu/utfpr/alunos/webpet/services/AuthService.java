@@ -46,6 +46,7 @@ public class AuthService {
         String token = tokenService.generateToken(newUser);
 
         Map<String, Object> data = new HashMap<>();
+        data.put("id", newUser.getId());
         data.put("name", newUser.getName());
         data.put("email", newUser.getEmail());
         data.put("token", token);
@@ -71,6 +72,7 @@ public class AuthService {
         String token = tokenService.generateToken(user);
 
         Map<String, Object> data = new HashMap<>();
+        data.put("id", user.getId());
         data.put("name", user.getName());
         data.put("email", user.getEmail());
         data.put("token", token);

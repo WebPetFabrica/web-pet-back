@@ -7,6 +7,7 @@ import br.edu.utfpr.alunos.webpet.utils.enums.UserType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -19,13 +20,16 @@ public class UserService {
     public List<Map<String, String>> getAllOngs() {
         List<User> ongs = userRepository.findAllByUserType(UserType.JURIDICO);
         return ongs.stream()
-                .map(ong -> Map.of(
-                        "id", ong.getId(),
-                        "name", ong.getName(),
-                        "email", ong.getEmail(),
-                        "phone", ong.getPhone(),
-                        "cnpj", ong.getCnpj()
-                ))
+                .map(ong -> {
+                    Map<String, String> map = new HashMap<>();
+                    map.put("id", ong.getId());
+                    map.put("name", ong.getName());
+                    map.put("email", ong.getEmail());
+                    map.put("phone", ong.getPhone());
+                    map.put("cnpj", ong.getCnpj());
+                    map.put("description", ong.getDescription());
+                    return map;
+                })
                 .collect(Collectors.toList());
     }
 }
