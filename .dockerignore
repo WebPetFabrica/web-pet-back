@@ -1,0 +1,40 @@
+# Maven and Java
+/target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# IDEs and editors
+/.idea/
+*.iml
+*.ipr
+*.iws
+*.sw?
+*.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Logs
+*.log
+
+# Docker
+Dockerfile
+docker-compose.yml
+
+# Misc
+*.class
+*.jar
+*.war
+*.ear
+
+# Node/npm (if present)
+node_modules/
+
+# Other
+*.tmp
+*.bak
+*.old
