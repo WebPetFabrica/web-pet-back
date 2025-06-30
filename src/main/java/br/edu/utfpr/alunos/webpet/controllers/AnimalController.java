@@ -1,20 +1,17 @@
 package br.edu.utfpr.alunos.webpet.controllers;
 
-import br.edu.utfpr.alunos.webpet.domain.user.Animal;
 import br.edu.utfpr.alunos.webpet.dto.AdoptionResponseDTO;
 import br.edu.utfpr.alunos.webpet.dto.AnimalDTO;
 import br.edu.utfpr.alunos.webpet.dto.ResponseDTO;
-import br.edu.utfpr.alunos.webpet.repositories.AnimalRepository;
 import br.edu.utfpr.alunos.webpet.services.AnimalService;
 import br.edu.utfpr.alunos.webpet.utils.enums.CategoryType;
 import br.edu.utfpr.alunos.webpet.utils.enums.StatusType;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/animal")
@@ -23,13 +20,22 @@ public class AnimalController {
     private final AnimalService animalService;
 
     @GetMapping("/animals")
-    public ResponseEntity<ResponseDTO> getAllAnimals() {
-        return animalService.getAll();
+    public ResponseEntity<ResponseDTO> getAllAnimals(
+            @RequestParam(required = false) CategoryType category,
+            @RequestParam(required = false) StatusType status,
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "10") int size) {
+        return animalService.getAll(category, status, PageRequest.of(page, size));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<AnimalDTO> getAnimalById(@PathVariable String id) {
+    	System.out.println(id);
         AnimalDTO animal = animalService.getById(id);
+        System.out.println(animal);
+        
+        
+        
         return ResponseEntity.ok(animal);
     }
 

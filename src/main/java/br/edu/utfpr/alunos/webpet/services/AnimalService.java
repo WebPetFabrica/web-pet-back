@@ -11,6 +11,8 @@ import br.edu.utfpr.alunos.webpet.repositories.AdoptionRepository;
 import br.edu.utfpr.alunos.webpet.repositories.AnimalRepository;
 import br.edu.utfpr.alunos.webpet.utils.enums.CategoryType;
 import br.edu.utfpr.alunos.webpet.utils.enums.StatusType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -33,12 +35,16 @@ public class AnimalService {
         this.adoptionRepository = adoptionRepository;
 
     }
+    
+    public ResponseEntity<ResponseDTO> getAll(CategoryType category, StatusType status, Pageable pageable) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-
-
-    public ResponseEntity<ResponseDTO> getAll() {
-        List<Animal> animals = animalRepository.findAll();
-        List<AnimalDTO> animalDTOs = animals.stream()
+        User user = null;
+        if (authentication != null && authentication.isAuthenticated() && !(authentication.getPrincipal() instanceof String)) {
+            user = (User) authentication.getPrincipal();
+        }
+        Page<Animal> animalsPage = animalRepository.findByOngAndCategoryAndStatus(user, category, status, pageable);
+        List<AnimalDTO> animalDTOs = animalsPage.getContent().stream()
                 .map(animal -> new AnimalDTO(
                         animal.getId(),
                         animal.getName(),
@@ -47,15 +53,20 @@ public class AnimalService {
                         animal.getStatus()
                 ))
                 .toList();
-
         HashMap<String, Object> data = new HashMap<>();
         data.put("animals", animalDTOs);
+        data.put("totalElements", animalsPage.getTotalElements());
+        data.put("totalPages", animalsPage.getTotalPages());
+        data.put("page", animalsPage.getNumber());
+        data.put("size", animalsPage.getSize());
+
         return ResponseEntity.ok(ResponseDTO.success("Lista de animais obtida com sucesso", data));
     }
 
     public AnimalDTO getById(String id) {
         Animal animal = animalRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Animal não encontrado"));
+
         return new AnimalDTO(
                 animal.getId(),
                 animal.getName(),
@@ -113,12 +124,16 @@ public class AnimalService {
                 .toList();
     }
 
-    public AnimalDTO createAnimal(AnimalDTO animalDTO) {
+    public AnimalDTO createAnimal(AnimalDTO animalDTO ) {
+    	 Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    	 User user = (User) authentication.getPrincipal();
+    	
         Animal animal = new Animal();
         animal.setName(animalDTO.name());
         animal.setDescription(animalDTO.description());
         animal.setCategory(animalDTO.category());
         animal.setStatus(animalDTO.status());
+        animal.setOng(user);
 
         Animal savedAnimal = animalRepository.save(animal);
         return new AnimalDTO(

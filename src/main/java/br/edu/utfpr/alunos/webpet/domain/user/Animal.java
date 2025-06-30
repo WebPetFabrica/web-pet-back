@@ -28,4 +28,8 @@ public class Animal {
 
     @Enumerated(EnumType.STRING)
     private StatusType status;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ong_id", nullable = false)
+    private User ong;
 }
