@@ -1,6 +1,7 @@
 package br.edu.utfpr.alunos.webpet.controllers;
 
 import br.edu.utfpr.alunos.webpet.domain.user.Animal;
+import br.edu.utfpr.alunos.webpet.dto.AdoptionResponseDTO;
 import br.edu.utfpr.alunos.webpet.dto.AnimalDTO;
 import br.edu.utfpr.alunos.webpet.dto.ResponseDTO;
 import br.edu.utfpr.alunos.webpet.repositories.AnimalRepository;
@@ -66,5 +67,11 @@ public class AnimalController {
     public ResponseEntity<Void> deleteAnimal(@PathVariable String id) {
         animalService.deleteAnimal(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/adopt/{id}")
+    public ResponseEntity<AdoptionResponseDTO> adoptAnimal(@PathVariable String id) {
+        AdoptionResponseDTO response = animalService.adoptAnimal(id);
+        return ResponseEntity.ok(response);
     }
 }
