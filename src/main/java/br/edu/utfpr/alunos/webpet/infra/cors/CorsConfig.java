@@ -10,11 +10,11 @@ public class CorsConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 // Configuração mais restritiva para ambientes de desenvolvimento
-                .allowedOrigins("http://localhost:4200", "http://localhost:3000") // Frontend Angular e React
+                .allowedOrigins("http://localhost:3000") // Frontend Angular e React
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true)
-                .maxAge(3600); // Cache por 1 hora
+                .maxAge(3600); // Cache por 1 horas
         
         // TODO: Em produção, restringir para domínios específicos da aplicação
     }

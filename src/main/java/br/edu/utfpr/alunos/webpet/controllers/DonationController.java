@@ -19,7 +19,9 @@ public class DonationController {
     public ResponseEntity<DonationResponseDTO> donate(@RequestBody Map<String, Object> body) {
         BigDecimal amount = new BigDecimal(body.get("amount").toString());
         String paymentMethod = body.get("paymentMethod").toString();
+        
         DonationResponseDTO response = donationService.donate(amount, paymentMethod);
+
         return ResponseEntity.ok(response);
     }
 }
